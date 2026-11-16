@@ -1,2 +1,5 @@
-debug.keystore: yalnızca telefona elle kurulan deneme APK'ları için (gizli değil).
-Play Store'a yüklenecek imzalı AAB için ileride yukleme.p12.enc ve GitHub'da YUKLEME_PAROLA gizli değişkeni eklenecek.
+Bu klasörde iki anahtar var:
+- debug.keystore: yalnızca telefona elle kurulan deneme APK'ları için (gizli değil).
+- yukleme.p12.enc: Play Store yükleme anahtarı (alias: dukkantv), AES-256 ile şifreli.
+  Şifresi depoda DEĞİL; GitHub'da YUKLEME_PAROLA adlı gizli değişkende duruyor.
+  Şifre kaybolursa: Play Console > Uygulama bütünlüğü > Yükleme anahtarını sıfırla (Play App Signing açık olduğu için uygulama kaybolmaz).
