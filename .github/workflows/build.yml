@@ -1,0 +1,133 @@
+name: APK Derle
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  YUKLEME_PAROLA: ${{ secrets.YUKLEME_PAROLA }}
+
+jobs:
+  derle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Gradle önbelleği
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/wrapper/dists
+            ~/.gradle/caches
+          key: gradle-${{ runner.os }}-8-11-1-${{ hashFiles('package.json') }}
+          restore-keys: gradle-${{ runner.os }}-8-11-1-
+
+      - name: Paketleri kur
+        run: npm install
+
+      - name: Android projesini oluştur
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Uygulama simgesi ve açılış ekranı
+        run: |
+          cp -r android-ek/res/. android/app/src/main/res/
+          ls android/app/src/main/res/mipmap-xxxhdpi/ android/app/src/main/res/mipmap-anydpi-v26/
+
+      - name: Dik ekran ve titreşim ayarı
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's/android:name=".MainActivity"/android:name=".MainActivity" android:screenOrientation="portrait"/' $M
+          sed -i 's#</manifest>#    <uses-permission android:name="android.permission.VIBRATE" />\n</manifest>#' $M
+          grep -q 'screenOrientation="portrait"' $M && grep -q 'permission.VIBRATE' $M
+
+      - name: Android 16 (API 36) hedefi
+        run: |
+          V=android/variables.gradle
+          sed -i -E "s/compileSdkVersion = [0-9]+/compileSdkVersion = 36/; s/targetSdkVersion = [0-9]+/targetSdkVersion = 36/" $V
+          grep -E "compileSdkVersion|targetSdkVersion|minSdkVersion" $V
+
+      - name: Sabit imza ve sürüm numarası
+        run: |
+          G=android/app/build.gradle
+          sed -i -E "s/versionCode [0-9]+/versionCode ${{ github.run_number }}/; s/versionName \"[^\"]*\"/versionName \"1.${{ github.run_number }}\"/" $G
+          python3 - <<'PY'
+          p = "android/app/build.gradle"
+          s = open(p).read()
+          imza = """android {
+              signingConfigs {
+                  debug {
+                      storeFile file('../../imza/debug.keystore')
+                      storePassword 'android'
+                      keyAlias 'androiddebugkey'
+                      keyPassword 'android'
+                  }
+              }"""
+          s = s.replace("android {", imza, 1)
+          open(p, "w").write(s)
+          PY
+          grep -nE "versionCode|versionName|storeFile" $G
+
+      - name: APK derle
+        run: |
+          cd android
+          chmod +x gradlew
+          sed -i "s/networkTimeout=[0-9]*/networkTimeout=120000/" gradle/wrapper/gradle-wrapper.properties
+          for deneme in 1 2 3 4 5; do
+            ./gradlew assembleDebug --no-daemon && exit 0
+            echo "Deneme $deneme başarısız, 45 sn sonra tekrar"; sleep 45
+          done
+          exit 1
+
+      - name: APK dosyasına isim ver
+        run: mv android/app/build/outputs/apk/debug/app-debug.apk AkilVarMi-v${{ github.run_number }}.apk
+
+      - name: Play Store paketi (imzalı AAB)
+        if: ${{ env.YUKLEME_PAROLA != '' }}
+        env:
+          YUKLEME_PAROLA: ${{ secrets.YUKLEME_PAROLA }}
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in imza/yukleme.p12.enc -out "$RUNNER_TEMP/yukleme.p12" -pass env:YUKLEME_PAROLA
+          export YUKLEME_DOSYA="$RUNNER_TEMP/yukleme.p12"
+          python3 - <<'PY'
+          p = "android/app/build.gradle"
+          s = open(p).read()
+          s = s.replace("signingConfigs {", """signingConfigs {
+                  release {
+                      storeFile file(System.getenv("YUKLEME_DOSYA"))
+                      storePassword System.getenv("YUKLEME_PAROLA")
+                      keyAlias 'dukkantv'
+                      keyPassword System.getenv("YUKLEME_PAROLA")
+                      storeType 'pkcs12'
+                  }""", 1)
+          s = s.replace("minifyEnabled false", "minifyEnabled false\n            signingConfig signingConfigs.release", 1)
+          open(p, "w").write(s)
+          PY
+          cd android
+          ./gradlew bundleRelease --no-daemon
+          cd ..
+          mv android/app/build/outputs/bundle/release/app-release.aab AkilVarMi-v${{ github.run_number }}.aab
+          rm -f "$RUNNER_TEMP/yukleme.p12"
+
+      - name: Sürüm sayfasına yükle
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Sürüm ${{ github.run_number }}
+          files: |
+            AkilVarMi-v${{ github.run_number }}.apk
+            AkilVarMi-v${{ github.run_number }}.aab

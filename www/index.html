@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Akıl Var Mı? – Oynanabilir Örnek</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{--ink:#2b2140;--cream:#fff8ec;--orange:#ff7a2f;--purple:#6c3cff;--green:#22b573;--red:#ff4d6d}
+  html,body{height:100%}
+  body{font-family:'Baloo 2',system-ui,sans-serif;background:linear-gradient(160deg,#6c3cff 0%,#9a5cff 45%,#ff7a2f 100%);background-attachment:fixed;color:var(--ink);display:flex;justify-content:center;min-height:100%;overflow-x:hidden}
+  .app{width:100%;max-width:460px;min-height:100%;display:flex;flex-direction:column;padding:12px 12px 18px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:6px;color:#fff;margin-bottom:8px}
+  .pill{background:rgba(255,255,255,.2);border-radius:999px;padding:4px 12px;font-weight:700;font-size:15px;border:none;color:#fff;box-shadow:none;font-family:inherit}
+  button.pill{cursor:pointer}
+  .story{background:#fff;border-radius:18px;padding:10px 14px;margin-bottom:10px;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+  .story h2{font-size:21px;line-height:1.15;font-weight:800}
+  .story p{font-size:15px;line-height:1.3;color:#5a4f70}
+  .scene{position:relative;width:100%;aspect-ratio:1/1.08;border-radius:22px;overflow:hidden;box-shadow:0 6px 0 rgba(0,0,0,.15) inset,0 6px 0 rgba(0,0,0,.12);touch-action:none}
+  .scene .floor{position:absolute;left:0;right:0;bottom:0;height:34%;background:rgba(0,0,0,.08)}
+  .item{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;user-select:none;-webkit-user-select:none;touch-action:none;z-index:2;transition:transform .25s ease}
+  .item .em{font-size:46px;line-height:1;filter:drop-shadow(0 3px 0 rgba(0,0,0,.15))}
+  .item .lb{font-size:12px;font-weight:700;background:rgba(255,255,255,.92);border-radius:8px;padding:1px 7px;max-width:112px;text-align:center;line-height:1.15}
+  .item.drag .em{background:rgba(255,255,255,.55);border:2px dashed rgba(43,33,64,.35);border-radius:16px;padding:4px 6px}
+  .item.dragging{transition:none;z-index:10}
+  .item.dragging .em{transform:scale(1.15)}
+  .item.hot .em{animation:pulse .6s ease}
+  .item.over .em{outline:3px solid var(--green);border-radius:16px}
+  .item.shake{animation:shake .4s}
+  @keyframes pulse{50%{transform:scale(1.25)}}
+  @keyframes shake{0%,100%{margin-left:0}25%{margin-left:-8px}75%{margin-left:8px}}
+  .waves{position:absolute;font-size:24px;animation:wave 1s infinite;z-index:1;pointer-events:none}
+  @keyframes wave{0%{opacity:0;transform:translate(0,0) scale(.8)}50%{opacity:1}100%{opacity:0;transform:translate(18px,-18px) scale(1.2)}}
+  .toast{min-height:58px;background:var(--cream);border-radius:16px;margin-top:10px;padding:10px 14px;font-size:16px;font-weight:700;line-height:1.25;display:flex;align-items:center;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+  .toast.good{background:#e3fbef}
+  .toast.bad{background:#ffe8ec}
+  .row{display:flex;gap:8px;margin-top:10px}
+  button{font-family:inherit;font-weight:800;font-size:16px;border:none;border-radius:14px;padding:11px 14px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.18);transition:transform .1s}
+  button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+  .b-hint{flex:1;background:#ffd23f;color:var(--ink)}
+  .b-reset{background:#fff;color:var(--ink)}
+  .b-main{background:var(--orange);color:#fff;font-size:20px;padding:14px 20px;width:100%}
+  .b-sec{background:#fff;color:var(--ink);font-size:16px;padding:11px 16px;width:100%;margin-top:8px}
+  .howto{color:#fff;opacity:.9;font-size:13px;text-align:center;margin-top:10px;line-height:1.3}
+  .overlay{position:fixed;inset:0;background:rgba(30,15,60,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .overlay.show{display:flex}
+  .card{background:#fff;border-radius:24px;padding:22px 20px;max-width:380px;width:100%;text-align:center;animation:pop .3s ease}
+  @keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+  .card h3{font-size:26px;font-weight:800;line-height:1.1;margin-bottom:6px}
+  .card p{font-size:15.5px;color:#5a4f70;line-height:1.35;margin-bottom:12px}
+  .stars{font-size:40px;letter-spacing:4px;margin:4px 0 8px}
+  .ad{background:#111;color:#fff}
+  .ad h3{color:#ffd23f}
+  .ad p{color:#ddd}
+  .count{font-size:54px;font-weight:800;color:#ffd23f}
+  .tag{display:inline-block;background:#ffd23f;color:#111;font-weight:800;font-size:12px;border-radius:6px;padding:2px 8px;margin-bottom:8px}
+  .start{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#fff;gap:14px;padding:20px 6px}
+  .logo{font-size:56px;font-weight:800;line-height:.95;text-shadow:0 5px 0 rgba(0,0,0,.2)}
+  .logo span{display:block;font-size:84px}
+  .start p{font-size:17px;opacity:.95;line-height:1.35;max-width:330px}
+  .list{text-align:left;background:#f6f1ff;border-radius:14px;padding:10px 14px;margin-bottom:14px;font-size:14.5px;line-height:1.45;color:var(--ink)}
+  .hidden{display:none!important}
+  /* HARİTA */
+  .maphead{color:#fff;text-align:center;margin:4px 0 12px}
+  .maphead h2{font-size:30px;font-weight:800;line-height:1;text-shadow:0 3px 0 rgba(0,0,0,.2)}
+  .maphead p{font-size:15px;opacity:.9}
+  .map{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 10px;padding:4px 2px 10px}
+  .node{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;box-shadow:none;padding:0;color:#fff;font-weight:700}
+  .node:active{transform:none}
+  .node .ball{width:66px;height:66px;border-radius:50%;background:#fff;color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 5px 0 rgba(0,0,0,.2);position:relative}
+  .node .num{position:absolute;top:-4px;left:-4px;background:var(--purple);color:#fff;border-radius:999px;font-size:12px;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #fff}
+  .node .st{font-size:13px;letter-spacing:1px;height:16px;line-height:16px}
+  .node .nm{font-size:11.5px;line-height:1.1;text-align:center;max-width:80px;min-height:26px;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+  .node.next .ball{background:#ffd23f;animation:bob 1.2s ease-in-out infinite}
+  .node.locked .ball{background:rgba(255,255,255,.35);color:rgba(43,33,64,.55)}
+  .node.locked .nm{opacity:.6}
+  @keyframes bob{50%{transform:translateY(-5px)}}
+  .mapfoot{display:flex;gap:8px;margin-top:6px}
+  .mapfoot button{flex:1;font-size:14px;padding:9px 10px;background:rgba(255,255,255,.95);color:var(--ink)}
+  .progressbar{height:12px;background:rgba(255,255,255,.25);border-radius:999px;overflow:hidden;margin:6px 4px 12px}
+  .progressbar div{height:100%;background:#ffd23f;border-radius:999px;transition:width .4s}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- BAŞLANGIÇ -->
+  <div id="startScreen" class="start">
+    <div class="logo"><span>🧠</span>Akıl Var Mı?</div>
+    <p>Mahallede, evde, dolmuşta... Her bölüm küçük bir hikâye. Eşyaları sürükle, birleştir, ters köşeyi bul!</p>
+    <button class="b-main" id="startBtn">▶ OYNA</button>
+    <p style="font-size:13px;opacity:.8">Deneme sürümü · 16 bölüm</p>
+  </div>
+
+  <!-- HARİTA -->
+  <div id="mapScreen" class="hidden" style="display:flex;flex-direction:column">
+    <div class="topbar">
+      <button class="pill" id="homeBtn">🏠</button>
+      <div class="pill">⭐ <span id="mapStars">0</span></div>
+      <div class="pill">🪙 <span id="mapCoins">0</span></div>
+      <button class="pill" id="soundBtn">🔊</button>
+    </div>
+    <div class="maphead"><h2>Bölümler</h2><p id="mapSub">Sıradaki bölüm sarı renkte zıplıyor 👇</p></div>
+    <div class="progressbar"><div id="pbar" style="width:0%"></div></div>
+    <div class="map" id="map"></div>
+    <div class="mapfoot"><button id="wipeBtn">↺ İlerlemeyi sıfırla</button></div>
+  </div>
+
+  <!-- OYUN -->
+  <div id="gameScreen" class="hidden" style="display:flex;flex-direction:column">
+    <div class="topbar">
+      <button class="pill" id="backBtn">🗺️ Harita</button>
+      <div class="pill" id="lvlPill">Bölüm 1/16</div>
+      <div class="pill">🪙 <span id="coins">0</span></div>
+    </div>
+    <div class="story"><h2 id="title"></h2><p id="story"></p></div>
+    <div class="scene" id="scene"></div>
+    <div class="toast" id="toast">Bir eşyayı sürükleyip başka bir şeyin üstüne bırak. Dokunursan eşyaya yakından bakarsın.</div>
+    <div class="row">
+      <button class="b-hint" id="hintBtn">💡 İpucu <small>(reklam izle)</small></button>
+      <button class="b-reset" id="resetBtn">↺</button>
+    </div>
+    <div class="howto">Kesik çizgili eşyalar sürüklenebilir 👆</div>
+  </div>
+</div>
+
+<!-- REKLAM ÖRNEĞİ -->
+<div class="overlay" id="adOverlay">
+  <div class="card ad">
+    <div class="tag">REKLAM ÖRNEĞİ</div>
+    <h3>Ödüllü reklam</h3>
+    <p>Gerçek oyunda burada 5–30 saniyelik bir reklam oynar. Oyuncu ipucu kazanır, sen de reklam geliri.</p>
+    <div class="count" id="adCount">3</div>
+  </div>
+</div>
+
+<!-- BÖLÜM SONU -->
+<div class="overlay" id="winOverlay">
+  <div class="card">
+    <h3 id="winTitle">Helal olsun! 🎉</h3>
+    <div class="stars" id="stars">⭐⭐⭐</div>
+    <p id="winText"></p>
+    <button class="b-main" id="nextBtn">Sonraki bölüm ▶</button>
+    <button class="b-sec" id="toMapBtn">🗺️ Haritaya dön</button>
+  </div>
+</div>
+
+<!-- KİLİTLİ -->
+<div class="overlay" id="lockOverlay">
+  <div class="card">
+    <h3>🔒 Kilitli</h3>
+    <p>Bu bölümü açmak için önce sıradaki bölümü bitir.</p>
+    <button class="b-main" id="lockOk">Tamam</button>
+  </div>
+</div>
+
+<!-- SIFIRLA ONAYI -->
+<div class="overlay" id="wipeOverlay">
+  <div class="card">
+    <h3>Emin misin?</h3>
+    <p>Bütün yıldızlar, altınlar ve açılan bölümler silinir.</p>
+    <button class="b-main" id="wipeYes" style="background:var(--red)">Evet, sıfırla</button>
+    <button class="b-sec" id="wipeNo">Vazgeç</button>
+  </div>
+</div>
+
+<!-- OYUN SONU -->
+<div class="overlay" id="endOverlay">
+  <div class="card">
+    <h3>Örnek bitti! 🧠🏆</h3>
+    <p>16 bölümün hepsini bitirdin. Tam oyunda olacaklar:</p>
+    <div class="list">
+      📚 200+ bölüm: düğün, bayram, okul, kayınvalide, dolmuş...<br>
+      📍 81 ilden yöresel bölümler<br>
+      📅 Her gün yeni "Günün Bulmacası"<br>
+      🔥 Seri ödülü: "7 gündür akıllısın!"<br>
+      🪙 Altınla ipucu ve yeni bölüm paketleri<br>
+      📺 İpucu, devam ve ödül için reklam<br>
+      🎬 Her bölüm aynı zamanda bir TikTok/Shorts videosu
+    </div>
+    <button class="b-main" id="againBtn">🗺️ Haritaya dön</button>
+  </div>
+</div>
+
+<script>
+// ---------- BÖLÜMLER ----------
+const LEVELS = [
+  {
+    title: "Çay demlenmiyor! ☕",
+    story: "Misafir kapıda, çay yok! Ama ocak bir türlü yanmıyor...",
+    bg: "linear-gradient(180deg,#ffe7b8 0%,#ffd08a 100%)",
+    hint: "Ocakla uğraşma. Mutfakta elektrikle çalışan bir şey var...",
+    win: "Su ısıtıcısını akıl ettin, misafir çayını içti!",
+    items: [
+      {id:"ocak", em:"🍳", lb:"Ocak", x:28, y:30, target:true, look:"Düğmeyi çeviriyorsun... tık tık... alev yok."},
+      {id:"tup", em:"🧯", lb:"Tüp", x:12, y:66, target:true, look:"Tüpü kaldırdın. Tüy gibi hafif!"},
+      {id:"priz", em:"🔌", lb:"Priz", x:86, y:22, target:true, look:"Duvarda bir priz. Boşta duruyor."},
+      {id:"demlik", em:"🫖", lb:"Demlik", x:58, y:34, drag:true, target:true, look:"Demlikte çay hazır, sadece kaynar su lazım."},
+      {id:"kibrit", em:"🗃️", lb:"Kibrit", x:40, y:72, drag:true, look:"Kibrit kutusu. İçinde birkaç çöp var."},
+      {id:"kettle", em:"🫗", lb:s=> s.hot ? "Su ısıtıcısı ♨️ (kaynadı)" : "Su ısıtıcısı (fişi çekik)", x:76, y:70, drag:true, look:s=> s.hot ? "Su fokur fokur kaynamış!" : "İçinde su var ama fişi takılı değil."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="kettle>priz"){ if(s.hot) return {msg:"Zaten kaynadı, şimdi demliğe dök!"}; s.hot=true; return {type:"progress", msg:"Fişi taktın... Fokur fokur! Su kaynadı ♨️", flash:"kettle"}; }
+      if(k==="kettle>demlik") return s.hot ? {type:"win", msg:"Kaynar su demliğe! Çay demlendi ☕"} : {msg:"Su buz gibi! Önce kaynatman lazım."};
+      if(k==="demlik>ocak") return {msg:"Demliği ocağa koydun... ama ocak yanmıyor ki! 🤔"};
+      if(k==="kibrit>ocak") return {msg:"Kibriti çaktın... gaz gelmiyor. Tüpe bir baksan?"};
+      if(k==="kibrit>tup") return {msg:"Tüpe kibrit mi?! 😱 Sakın! Ayrıca tüp bomboş."};
+      if(k==="demlik>priz") return {msg:"Demliği prize mi takacaksın? 😂"};
+      if(k==="kettle>ocak") return {msg:"Elektrikli ısıtıcı ocakta ısınmaz 😅"};
+      if(t==="tup") return {msg:"Tüpü salladın... bomboş. Tüp bitmiş!"};
+      return null;
+    }
+  },
+  {
+    title: "Dolmuşta bozuk yok! 🚐",
+    story: "Okula geç kalıyorsun. Cebinde sadece 200 TL var. Şoför bozuk istiyor!",
+    bg: "linear-gradient(180deg,#bfe6ff 0%,#8fd0ff 100%)",
+    hint: "Şoför bozamıyor... Peki durakta kim seve seve para bozar? Karnın da aç zaten 😉",
+    win: "Simit aldın, üstünü bozuk aldın, dolmuşa bindin. Hem tok hem zamanında!",
+    items: [
+      {id:"sofor", em:"🧔", lb:"Şoför", x:22, y:28, target:true, look:"\"Bozuk ver abi, 200'lük bozamam!\""},
+      {id:"teyze", em:"👵", lb:"Teyze", x:74, y:26, target:true, look:"Teyze çantasını karıştırıyor, gözlüğünü arıyor."},
+      {id:"simitci", em:"🧑‍🍳", lb:"Simitçi", x:78, y:66, target:true, look:"\"Taze simit! Sıcak sıcak!\""},
+      {id:"para", em:"💵", lb:"200 TL", x:30, y:72, drag:true, show:s=>!s.bozuk, look:"Koca bir 200'lük. Kimse bozamıyor."},
+      {id:"bozuk", em:"🪙", lb:"Bozuk para", x:30, y:72, drag:true, show:s=>s.bozuk, look:"Şıngır şıngır bozuk para!"},
+      {id:"simit", em:"🥯", lb:"Simit", x:52, y:80, drag:true, show:s=>s.bozuk, look:"Mis gibi susamlı simit."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="para>sofor") return {msg:"Şoför: \"Abi bozamam dedim ya! Bozuk ver!\""};
+      if(k==="para>teyze") return {msg:"Teyze: \"Evladım bende de yok, maaşı bekliyorum\" 😄"};
+      if(k==="para>simitci"){ s.bozuk=true; return {type:"progress", msg:"Bir simit aldın, simitçi üstünü bozuk verdi! 🥯🪙", flash:"bozuk"}; }
+      if(k==="bozuk>sofor") return {type:"win", msg:"Şoför: \"Sağ ol abi, buyur geç!\" 🚐"};
+      if(k==="simit>sofor") return {msg:"Şoför simidi aldı, teşekkür etti... ama hâlâ para istiyor 😂"};
+      if(k==="simit>teyze") return {msg:"Teyze çok sevindi, dua etti 🤲 Ama yol parası duruyor."};
+      if(k==="bozuk>teyze") return {msg:"Teyzeye para mı veriyorsun? O da şaşırdı 😅"};
+      if(k==="bozuk>simitci") return {msg:"Simitçi: \"Bir simit daha mı? Doydun bence!\""};
+      return null;
+    }
+  },
+  {
+    title: "Bebek uyumuyor! 👶",
+    story: "Bebek bir türlü uyumuyor, anne yorgun. Ona yardım et!",
+    bg: "linear-gradient(180deg,#e2d6ff 0%,#c8b5ff 100%)",
+    hint: "Bebeğe bir şey vermeden önce kulağını aç: bu odada çok ses var...",
+    win: "Gürültünün kaynağını buldun, ninniyle bebek uyudu. Anne sana dua ediyor!",
+    items: [
+      {id:"bebek", em:s=> s.done ? "😴" : "👶", lb:"Bebek", x:30, y:32, target:true, look:"Gözleri kocaman açık, etrafı dinliyor."},
+      {id:"amca", em:"👴", lb:s=> s.quiet ? "Amca (kulaklıkla)" : "Amca (telefonda maç izliyor)", x:76, y:30, target:true, look:s=> s.quiet ? "Amca kulaklıkla mutlu mutlu izliyor." : "Telefonda yüksek sesle maç özeti izliyor! 📢 GOOOL!"},
+      {id:"biberon", em:"🍼", lb:"Biberon", x:14, y:72, drag:true, look:"Ilık süt dolu biberon."},
+      {id:"oyuncak", em:"🪇", lb:"Çıngırak", x:36, y:78, drag:true, look:"Şıkır şıkır çıngırak."},
+      {id:"ninni", em:"🎵", lb:"Ninni", x:60, y:76, drag:true, look:"\"Dandini dandini dastana...\""},
+      {id:"kulak", em:"🎧", lb:"Kulaklık", x:86, y:72, drag:true, show:s=>!s.quiet, look:"Kablosuz kulaklık. Kimin acaba?"}
+    ],
+    waves:s=> s.quiet ? null : {x:88, y:14},
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="biberon>bebek") return {msg:"Karnı tok, biberonu itti 🙅"};
+      if(k==="oyuncak>bebek") return {msg:"Çıngırağı görünce daha da uyandı! 😆"};
+      if(k==="ninni>bebek"){ if(s.quiet){ s.done=true; return {type:"win", msg:"Dandini dandini... ve mışıl mışıl uyudu 😴"}; } return {msg:"Ninni söylüyorsun ama amcanın telefonundan \"GOOOL!\" sesi geliyor, duyulmuyor!"}; }
+      if(k==="kulak>amca"){ s.quiet=true; return {type:"progress", msg:"Amca kulaklığı taktı. Ohh, sessizlik! 🤫", flash:"amca"}; }
+      if(k==="kulak>bebek") return {msg:"Bebeğe kulaklık mı? 😂 Olmaz!"};
+      if(k==="biberon>amca") return {msg:"Amca biberona garip garip baktı 🤨"};
+      if(k==="oyuncak>amca") return {msg:"Amca çıngırağı salladı, ses daha da arttı! 🙉"};
+      if(k==="ninni>amca") return {msg:"Amca ninniyi duymadı bile, maç izliyor."};
+      return null;
+    }
+  },
+  {
+    il: "Malatya",
+    title: "Kayısı hasadı! 🍑",
+    story: "Dedenin bahçesinde kayısılar olmuş, ama hepsi ağacın tepesinde. Ezmeden toplaman lazım!",
+    bg: "linear-gradient(180deg,#ffe9c7 0%,#ffc879 55%,#9fd67a 100%)",
+    hint: "Malatyalılar kayısıyı tek tek toplamaz. Önce ağacın altına bir şey serer...",
+    win: "Tam bir Malatyalı gibi topladın: önce çarşafı serdin, sonra ağacı silktin. Tek bir kayısı bile ezilmedi!",
+    items: [
+      {id:"agac", em:"🌳", lb:s=> s.done ? "Kayısı ağacı 🍑🍑🍑" : "Kayısı ağacı", x:50, y:30, target:true, look:"Dallar kayısıdan eğilmiş, ama en tepedeler."},
+      {id:"serili", em:"🛏️", lb:"Serili çarşaf", x:50, y:58, target:true, show:s=>s.serili, look:"Ağacın altına kocaman bir çarşaf serili."},
+      {id:"merdiven", em:"🪜", lb:"Merdiven", x:13, y:40, drag:true, look:"Eski bir merdiven. Bir basamağı kırık!"},
+      {id:"sopa", em:"🪵", lb:"Uzun sopa", x:85, y:42, drag:true, look:"Uzun bir sopa. Dallara yetişir."},
+      {id:"carsaf", em:"🛏️", lb:"Çarşaf", x:20, y:78, drag:true, show:s=>!s.serili, look:"Annenin eski çarşafı. Kocaman!"},
+      {id:"sepet", em:"🧺", lb:"Sepet", x:78, y:78, drag:true, look:"Hasır sepet. Kayısılar buraya."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="merdiven>agac") return {msg:"Merdiveni dayadın... ama basamağı kırık, çıkamazsın! 😬"};
+      if(k==="sepet>agac") return {msg:"Sepeti havaya kaldırdın, tepeye yetişmiyor 😅"};
+      if(k==="carsaf>agac"){ s.serili=true; return {type:"progress", msg:"Çarşafı ağacın altına serdin. Şimdi ne yapacaksın? 🤔", flash:"serili"}; }
+      if(k==="sopa>agac" || k==="sopa>serili"){
+        if(s.serili){ s.done=true; return {type:"win", msg:"Dallara vurdun... kayısılar yumuşacık çarşafa yağdı! 🍑🍑🍑"}; }
+        return {msg:"Kayısılar yere düştü, hepsi ezildi! 😱 Önce yere bir şey sermen lazım."};
+      }
+      if(k==="sepet>serili") return {msg:"Sepet hazır, ama önce kayısıların düşmesi lazım."};
+      return null;
+    }
+  },
+  {
+    il: "Antalya",
+    title: "Turist yol soruyor! 🏖️",
+    story: "Bir turist sana \"Where is the beach?\" diye soruyor. Sen İngilizce bilmiyorsun!",
+    bg: "linear-gradient(180deg,#9ee3ff 0%,#5cc8f2 50%,#ffe3a1 100%)",
+    hint: "Cevap gözünün önünde. Ve bazen bir insanı da sürükleyebilirsin 😉",
+    win: "Hiç İngilizce bilmeden işi çözdün: turisti tabelaya götürdün!",
+    items: [
+      {id:"turist", em:"👱‍♀️", lb:"Turist", x:30, y:32, drag:true, target:true, look:"\"Excuse me! Where is the beach?\" Haritası da yok."},
+      {id:"tabela", em:"🪧", lb:"Tabela", x:84, y:26, target:true, look:"Tabelada ok ve \"PLAJ / BEACH 200 m\" yazıyor."},
+      {id:"sozluk", em:"📕", lb:"Sözlük", x:14, y:74, drag:true, look:"Cep sözlüğü... biraz ıslak."},
+      {id:"telefon", em:"📱", lb:"Telefon", x:40, y:78, drag:true, look:"Ekran kararmış. Şarj %0 🪫"},
+      {id:"krem", em:"🧴", lb:"Güneş kremi", x:66, y:76, drag:true, look:"Yüksek korumalı güneş kremi."},
+      {id:"dondurma", em:"🍦", lb:"Dondurma", x:88, y:66, drag:true, look:"Erimek üzere olan bir dondurma."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="turist>tabela") return {type:"win", msg:"Turist tabelayı gördü: \"Ooo, beach! Teşekkürler!\" 🏖️"};
+      if(k==="sozluk>turist") return {msg:"Sözlüğü açtın... sayfalar ıslaktan yapışmış! 📕💦"};
+      if(k==="telefon>turist") return {msg:"Telefonla çeviri yapacaktın ama şarj bitmiş 🪫"};
+      if(k==="krem>turist") return {msg:"Turist teşekkür edip kremi sürdü... ama hâlâ plajı soruyor 😄"};
+      if(k==="dondurma>turist") return {msg:"Turist dondurmayı sevdi! \"Thank you!\" Ama yine \"Beach?\" diyor."};
+      if(t==="tabela") return {msg:"Tabelaya bir şey göstermenin anlamı yok, okuyacak kişi lazım 😉"};
+      return null;
+    }
+  },
+  {
+    il: "Çorum",
+    title: "Leblebi kavanozu açılmıyor! 🫙",
+    story: "Misafire meşhur Çorum leblebisi ikram edeceksin, ama kavanozun kapağı inatla açılmıyor!",
+    bg: "linear-gradient(180deg,#fff1c9 0%,#f6d58a 100%)",
+    hint: "Kuvvet değil akıl! Kapağa hava girmesi ya da kapağın biraz genleşmesi lazım...",
+    win: "Kuvvet değil akıl! Kapağı açtın, misafir Çorum leblebisinin tadına baktı.",
+    items: [
+      {id:"misafir", em:"🧓", lb:"Misafir", x:76, y:28, target:true, look:"\"Hiç zahmet etme evladım\" diyor, ama gözü leblebide 😄"},
+      {id:"musluk", em:"🚰", lb:"Sıcak su", x:18, y:26, target:true, look:"Musluktan sıcak su akıyor."},
+      {id:"kavanoz", em:"🫙", lb:"Leblebi kavanozu", x:46, y:44, drag:true, target:true, show:s=>!s.acik, look:"Kapak sımsıkı. Çevirmeye çalıştın, kımıldamıyor!"},
+      {id:"leblebi", em:"🥜", lb:"Çorum leblebisi", x:46, y:44, drag:true, show:s=>s.acik, look:"Çıtır çıtır, mis gibi leblebi!"},
+      {id:"bicak", em:"🔪", lb:"Bıçak", x:14, y:76, drag:true, look:"Keskin mutfak bıçağı."},
+      {id:"eldiven", em:"🧤", lb:"Eldiven", x:40, y:80, drag:true, look:"Kalın bir iş eldiveni."},
+      {id:"kasik", em:"🥄", lb:"Kaşık", x:68, y:76, drag:true, look:"Metal bir tatlı kaşığı."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="kasik>kavanoz"){ s.acik=true; return {type:"progress", msg:"Kaşıkla kapağın kenarından kanırttın... \"Pıt!\" Hava girdi, kapak açıldı! 🎉", flash:"leblebi"}; }
+      if(k==="kavanoz>musluk"){ s.acik=true; return {type:"progress", msg:"Kapağı sıcak suya tuttun, metal genleşti... Açıldı! 🎉", flash:"leblebi"}; }
+      if(k==="bicak>kavanoz") return {msg:"Bıçakla mı? Elini keseceksin! 😱 Daha güvenli bir şey bul."};
+      if(k==="eldiven>kavanoz") return {msg:"Eldivenle sımsıkı tuttun, çevirdin... ama kapak yine dönmedi 😤"};
+      if(k==="kavanoz>misafir") return {msg:"Misafir de denedi: \"Yok evladım, bu açılmaz!\" 😅"};
+      if(k==="leblebi>misafir") return {type:"win", msg:"Misafir: \"Hah, Çorum leblebisi bu ya!\" 😋"};
+      return null;
+    }
+  },
+  // ---------- YENİ BÖLÜMLER (7–16) ----------
+  {
+    title: "Kumanda kayboldu! 📺",
+    story: "Maç 1 dakika sonra başlıyor, televizyon başka kanalda ve kumanda ortada yok!",
+    bg: "linear-gradient(180deg,#ffd9d0 0%,#ffb6a3 100%)",
+    hint: "Kumanda hep en sıcak, en yumuşak yerde kaybolur... Ama oradaki birini kaldırman lazım 🐾",
+    win: "Kediyi mamayla kaldırdın, kumanda altından çıktı. Maçın ilk dakikasını kaçırmadın!",
+    items: [
+      {id:"tv", em:"📺", lb:s=> s.done ? "Televizyon ⚽" : "Televizyon (dizi açık)", x:50, y:20, target:true, look:"Kanalda yemek programı var. Maç kanalı lazım!"},
+      {id:"koltuk", em:"🛋️", lb:"Koltuk", x:22, y:48, target:true, look:"Minderlerin arasına baktın: iki bozuk para, bir de cips kırıntısı."},
+      {id:"kedi", em:"🐈", lb:s=> s.kalkti ? "Kedi (mamada)" : "Kedi (yerinden kalkmıyor)", x:76, y:48, target:true, look:s=> s.kalkti ? "Mamasını yiyor, mutlu." : "Mışıl mışıl uyuyor. Altında bir şey var gibi... ama kalkmıyor!"},
+      {id:"kumanda", em:"🎮", lb:"Kumanda", x:68, y:70, drag:true, show:s=>s.kalkti, look:"İşte kumanda! Kedinin altında sıcacık kalmış."},
+      {id:"mama", em:"🥫", lb:"Kedi maması", x:16, y:80, drag:true, show:s=>!s.kalkti, look:"Ton balıklı kedi maması. Kokusu her yeri sardı."},
+      {id:"yastik", em:"🧸", lb:"Oyuncak", x:42, y:84, drag:true, look:"Kedinin peluş oyuncağı."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="mama>kedi"){ s.kalkti=true; return {type:"progress", msg:"Mama kutusunu açtın... Kedi bir sıçrayışta kalktı! Altında ne var? 👀", flash:"kumanda"}; }
+      if(k==="kumanda>tv"){ s.done=true; return {type:"win", msg:"Kanal değişti: GOOOL! Tam zamanında ⚽"}; }
+      if(k==="yastik>kedi") return {msg:"Kedi oyuncağa bir pati attı, sonra yine uyudu 😴"};
+      if(k==="mama>tv") return {msg:"Televizyon mama yemez 😂"};
+      if(k==="yastik>koltuk") return {msg:"Oyuncağı koltuğa koydun. Kumanda hâlâ yok."};
+      if(k==="mama>koltuk") return {msg:"Koltuğa mama döktün, anne görmesin 😬"};
+      if(t==="tv") return {msg:"Televizyonun tuşları bozuk, kumanda lazım!"};
+      return null;
+    }
+  },
+  {
+    title: "Takı töreninde iğne yok! 💍",
+    story: "Takı sırası sende! Çeyrek altını gelinin kurdelesine takacaksın ama elinde iğne yok.",
+    bg: "linear-gradient(180deg,#ffe0ef 0%,#ffc2dd 100%)",
+    hint: "Düğünlerde çengelli iğne kimde bulunur? Biraz gönlünü al, sonra iste 😉",
+    win: "Teyzeden iğneyi aldın, altını iğneledin, kurdeleye taktın. Salon alkışladı!",
+    items: [
+      {id:"gelin", em:"👰", lb:"Gelin", x:34, y:28, target:true, look:"Gelinin kurdelesinde altınlar sıralanmış."},
+      {id:"damat", em:"🤵", lb:"Damat", x:58, y:28, target:true, look:"Damat heyecandan terlemiş."},
+      {id:"teyze", em:"👵", lb:s=> s.igne ? "Teyze (mutlu)" : "Teyze (yakası iğne dolu)", x:84, y:34, target:true, look:"Yakasında beş tane çengelli iğne var! Ama biraz küskün, kimse ona ikram etmemiş."},
+      {id:"altin", em:"🪙", lb:s=> s.igneli ? "İğneli altın" : "Çeyrek altın", x:22, y:74, drag:true, target:true, look:"Pırıl pırıl bir çeyrek altın."},
+      {id:"lokum", em:"🍬", lb:"Lokum", x:50, y:80, drag:true, show:s=>!s.igne, look:"Bir tabak gül lokumu."},
+      {id:"igne", em:"🧷", lb:"Çengelli iğne", x:50, y:80, drag:true, show:s=>s.igne && !s.igneli, look:"Sağlam bir çengelli iğne."},
+      {id:"zarf", em:"✉️", lb:"Zarf", x:80, y:76, drag:true, look:"İçinde para olan bir zarf."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="lokum>teyze"){ s.igne=true; return {type:"progress", msg:"Teyze lokumu yedi, yüzü güldü: \"Al evladım, iğne bende bol!\" 🧷", flash:"igne"}; }
+      if(k==="igne>altin"){ s.igneli=true; return {type:"progress", msg:"Altını iğneye geçirdin. Şimdi takabilirsin! ✨", flash:"altin"}; }
+      if(k==="altin>gelin"){ if(s.igneli) return {type:"win", msg:"Altını kurdeleye iğneledin. \"Maşallah!\" sesleri yükseldi 💍👏"}; return {msg:"Altını kurdeleye koydun... şıngır! Yere düştü 😱 İğne lazım."}; }
+      if(k==="altin>teyze") return {msg:"Teyze: \"Bana değil evladım, geline tak!\" 😄"};
+      if(k==="zarf>gelin") return {msg:"Gelin zarfı aldı ama herkes altını bekliyor, sıradakiler sabırsız 😅"};
+      if(k==="altin>damat") return {msg:"Damadın kurdelesi dolu, gelininki boş! 😄"};
+      if(k==="lokum>gelin") return {msg:"Gelin şimdi lokum yiyemez, makyajı bozulur 💄"};
+      if(k==="igne>gelin") return {msg:"Boş iğneyi mi takacaksın? 😂 Önce altını geçir!"};
+      return null;
+    }
+  },
+  {
+    title: "Bayramda şeker bitti! 🍬",
+    story: "Kapı çaldı, mahallenin çocukları bayram şekeri istiyor. Ama şeker kutusu bomboş!",
+    bg: "linear-gradient(180deg,#d6f5d6 0%,#a7e3a7 100%)",
+    hint: "Anneanne lokumu hep çocukların yetişemeyeceği yere saklar. Sen de yetişemiyorsan... üstüne bir şey koy.",
+    win: "Sandalyeye çıkıp saklanan lokumu buldun. Çocuklar \"İyi bayramlar!\" diye sevinçle gitti!",
+    items: [
+      {id:"cocuk", em:"🧒", lb:"Çocuklar", x:82, y:30, target:true, look:"\"Şeker var mıııı?\" Gözleri parlıyor."},
+      {id:"dolap", em:"🗄️", lb:s=> s.cikti ? "Dolap (üst rafta lokum!)" : "Yüksek dolap", x:24, y:26, target:true, look:"En üst raf. Ne olduğu görünmüyor, elin yetişmiyor."},
+      {id:"kutu", em:"📦", lb:"Şeker kutusu", x:52, y:46, drag:true, look:"Bomboş! Sadece şeker kâğıtları kalmış."},
+      {id:"sandalye", em:"🪑", lb:"Sandalye", x:16, y:76, drag:true, show:s=>!s.cikti, look:"Sağlam bir mutfak sandalyesi."},
+      {id:"lokum", em:"🍬", lb:"Lokum kutusu", x:24, y:52, drag:true, show:s=>s.cikti, look:"Anneannenin sakladığı fıstıklı lokum!"},
+      {id:"kolonya", em:"🧴", lb:"Kolonya", x:48, y:80, drag:true, look:"Limon kolonyası."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="sandalye>dolap"){ s.cikti=true; return {type:"progress", msg:"Sandalyeye çıktın... Üst rafta saklanmış lokum kutusu! 🍬", flash:"lokum"}; }
+      if(k==="lokum>cocuk") return {type:"win", msg:"Çocuklar lokumu kaptı: \"İyi bayramlar abla/abi!\" 🎉"};
+      if(k==="kutu>cocuk") return {msg:"Boş kutuyu açtılar... yüzleri düştü 😢"};
+      if(k==="kolonya>cocuk") return {msg:"Kolonyayı ellerine döktün, mis koktular... ama \"Şeker?\" diyorlar 😄"};
+      if(k==="kutu>dolap") return {msg:"Kutuyu dolaba koydun, yine boş 😅"};
+      if(t==="dolap") return {msg:"Elin üst rafa yetişmiyor. Bir şeyin üstüne çıkman lazım!"};
+      return null;
+    }
+  },
+  {
+    title: "Sınavda kalem kırıldı! ✏️",
+    story: "Sınav başladı, kalemin ucu kırıldı ve kalemtıraşın yok. Konuşmak da yasak!",
+    bg: "linear-gradient(180deg,#e0ecff 0%,#b9d3ff 100%)",
+    hint: "Yan sıradaki arkadaşın kalemtıraşı var ama uyuyor. Konuşmadan uyandırmanın yolu?",
+    win: "Arkadaşını sessizce uyandırdın, kalemtıraşı ödünç aldın. Sınava yetiştin!",
+    items: [
+      {id:"ogretmen", em:"👩‍🏫", lb:"Öğretmen", x:50, y:18, target:true, look:"\"Sınavda konuşmak YOK!\" Kartal gibi bakıyor."},
+      {id:"arkadas", em:s=> s.uyandi ? "🙂" : "😪", lb:s=> s.uyandi ? "Arkadaş (uyanık)" : "Arkadaş (uyukluyor)", x:80, y:48, target:true, look:s=> s.uyandi ? "Kalemtıraşını uzattı." : "Sırada uyukluyor. Kalem kutusunda kalemtıraş var!"},
+      {id:"kalem", em:"✏️", lb:s=> s.done ? "Kalem (sivri)" : "Kalem (ucu kırık)", x:24, y:50, target:true, look:"Ucu kırık. Yazmıyor."},
+      {id:"cetvel", em:"📏", lb:"Cetvel", x:16, y:80, drag:true, look:"30 santimlik plastik cetvel."},
+      {id:"silgi", em:"🧽", lb:"Silgi", x:42, y:82, drag:true, look:"Yumuşak bir silgi."},
+      {id:"tiras", em:"🔺", lb:"Kalemtıraş", x:66, y:76, drag:true, show:s=>s.uyandi, look:"Arkadaşının kalemtıraşı."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="cetvel>arkadas"){ s.uyandi=true; return {type:"progress", msg:"Cetvelle hafifçe dürttün, arkadaşın uyandı ve kalemtıraşı sessizce uzattı 🤫", flash:"tiras"}; }
+      if(k==="tiras>kalem"){ s.done=true; return {type:"win", msg:"Kalemi açtın, sivri sivri! Sınava devam ✏️"}; }
+      if(k==="silgi>arkadas") return {msg:"Silgiyi attın, kafasına yumuşacık değdi... uyanmadı bile 😴"};
+      if(t==="ogretmen") return {msg:"Öğretmen: \"Yerine otur! Sınavda kalkmak yok!\" 😠"};
+      if(k==="silgi>kalem") return {msg:"Silgi kalemin ucunu düzeltmez 😅"};
+      if(k==="cetvel>kalem") return {msg:"Cetvelle kalemi mi açacaksın? 😂"};
+      return null;
+    }
+  },
+  {
+    il: "Trabzon",
+    title: "Karadeniz yağmuru geliyor! ☔",
+    story: "Çamaşırlar ipte, gök gürledi. Karadeniz'de yağmur bir dakikaya başlar!",
+    bg: "linear-gradient(180deg,#c9d6df 0%,#9fb4c4 60%,#7fbf7f 100%)",
+    hint: "Sepete bir bak, içi dolu mu? Önce boşaltacak bir yer bul.",
+    win: "Sepeti boşalttın, çamaşırları topladın. Yağmur başladığında hepsi içerideydi!",
+    items: [
+      {id:"ip", em:"👕", lb:"Çamaşır ipi", x:50, y:24, target:true, look:"İpte gömlekler, havlular, çoraplar..."},
+      {id:"masa", em:"🪵", lb:s=> s.bos ? "Masa (fındıklar üstünde 🌰)" : "Bahçe masası", x:20, y:52, target:true, look:s=> s.bos ? "Fındıklar masada, kuru ve güvende." : "Boş bir tahta masa."},
+      {id:"bulut", em:"⛈️", lb:"Kara bulut", x:84, y:14, target:true, look:"Gürül gürül! Birazdan bardaktan boşanırcasına yağacak."},
+      {id:"sepet", em:"🧺", lb:s=> s.bos ? "Sepet (boş)" : "Sepet (fındık dolu)", x:74, y:60, drag:true, look:s=> s.bos ? "Bomboş sepet, hazır." : "Ağzına kadar fındık dolu!"},
+      {id:"semsiye", em:"🌂", lb:"Şemsiye", x:20, y:82, drag:true, look:"Telleri kırık bir şemsiye."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="sepet>masa"){ if(s.bos) return {msg:"Sepet zaten boş, şimdi çamaşırlara!"}; s.bos=true; return {type:"progress", msg:"Fındıkları masaya boşalttın. Sepet hazır! 🧺", flash:"sepet"}; }
+      if(k==="sepet>ip"){ if(s.bos) return {type:"win", msg:"Çamaşırları sepete doldurdun, içeri koştun. Tam o an şakır şakır yağmur! ☔"}; return {msg:"Sepet fındık dolu! Çamaşırları nereye koyacaksın? 🌰"}; }
+      if(k==="semsiye>ip") return {msg:"Şemsiyeyi açtın... rüzgâr ters çevirdi! 🌂💨"};
+      if(k==="semsiye>bulut") return {msg:"Buluta şemsiye mi açıyorsun? 😂"};
+      if(k==="sepet>bulut") return {msg:"Bulutu sepete koyamazsın 😄"};
+      return null;
+    }
+  },
+  {
+    il: "Kayseri",
+    title: "Pazarda 100 TL eksik! 🧺",
+    story: "Mantı malzemesi alacaksın. Satıcı 600 TL diyor, cebinde 500 TL var.",
+    bg: "linear-gradient(180deg,#fff0d6 0%,#ffd9a0 100%)",
+    hint: "Pazarlığı sen bilmiyorsan, Kayseri'de bilen birini bulursun 😉 Bazı insanlar da sürüklenebilir.",
+    win: "Kayserili dayı pazarlığı yaptı, 500 TL'ye anlaştınız. Akşam mantı var!",
+    items: [
+      {id:"satici", em:"🧑‍🌾", lb:s=> s.indirim ? "Satıcı (500 TL dedi)" : "Satıcı (600 TL)", x:30, y:30, target:true, look:s=> s.indirim ? "\"Tamam abi, 500 olsun, hayırlı olsun!\"" : "\"Fiyat 600, son söz! Bir kuruş inmem!\""},
+      {id:"dayi", em:"👴", lb:"Kayserili dayı", x:80, y:30, drag:true, target:true, look:"Pazarda herkes onu tanıyor. \"Ben bu işleri bilirim evlat\" diyor."},
+      {id:"para", em:"💵", lb:"500 TL", x:22, y:78, drag:true, look:"Beş tane 100'lük. 100 TL eksik!"},
+      {id:"kumbara", em:"🐷", lb:"Kumbara", x:50, y:80, drag:true, look:"Kardeşinin kumbarası... almak olmaz!"},
+      {id:"telefon", em:"📱", lb:"Telefon", x:80, y:76, drag:true, look:"Bankada para yok, kart da evde kalmış."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="dayi>satici"){ s.indirim=true; return {type:"progress", msg:"Dayı satıcıyla 3 dakika pazarlık etti: \"Hadi 500, bereketli olsun!\" 🤝", flash:"satici"}; }
+      if(k==="para>satici"){ if(s.indirim) return {type:"win", msg:"500 TL'yi verdin, malzemeleri aldın. Mantı akşama hazır! 🥟"}; return {msg:"Satıcı: \"Abi 100 eksik! 600 dedim!\" 😤"}; }
+      if(k==="kumbara>satici") return {msg:"Kardeşinin kumbarasını mı veriyorsun?! Ayıp! 😱"};
+      if(k==="telefon>satici") return {msg:"Satıcı: \"Kart geçmez abi, nakit!\""};
+      if(k==="para>dayi") return {msg:"Dayı: \"Paranı cebine koy evlat, para değil akıl lazım!\" 😄"};
+      return null;
+    }
+  },
+  {
+    title: "Kedi ağaçta kaldı! 🐱",
+    story: "Sokak kedisi ağaca çıkmış, inemiyor. Miyavlıyor ama kimse yetişemiyor!",
+    bg: "linear-gradient(180deg,#d8f3ff 0%,#a9e2ff 55%,#9bd68a 100%)",
+    hint: "Kediye sen gitme, kedi sana gelsin. Burnu çok iyi koku alır...",
+    win: "Mamanın kokusunu alan kedi kendi kendine indi. Kimse merdivenden düşmedi!",
+    items: [
+      {id:"agac", em:"🌳", lb:s=> s.done ? "Ağaç (boş)" : "Ağaç (tepede kedi)", x:50, y:28, target:true, look:"Tepede minik bir kedi: \"Miyaaav!\""},
+      {id:"merdiven", em:"🪜", lb:"Kısa merdiven", x:14, y:50, drag:true, look:"Kısa bir merdiven. Yarı yola bile çıkmaz."},
+      {id:"sandalye", em:"🪑", lb:"Sandalye", x:86, y:52, drag:true, look:"Plastik bir sandalye."},
+      {id:"mama", em:"🐟", lb:"Balıklı mama", x:22, y:82, drag:true, look:"Ton balıklı kedi maması. Kokusu çok güçlü."},
+      {id:"top", em:"🧶", lb:"Yün yumağı", x:56, y:82, drag:true, look:"Kırmızı bir yün yumağı."},
+      {id:"kopek", em:"🐕", lb:"Mahalle köpeği", x:84, y:80, drag:true, look:"Kuyruğunu sallıyor, kediye bakıyor."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="mama>agac"){ s.done=true; return {type:"win", msg:"Mamayı ağacın dibine koydun. Kedi kokuyu aldı ve tıpış tıpış indi! 🐟🐱"}; }
+      if(k==="merdiven>agac") return {msg:"Merdiveni dayadın, yarı yola bile ulaşmıyor 😅"};
+      if(k==="sandalye>agac") return {msg:"Sandalyeye çıktın... daha da uzak görünüyor 😂"};
+      if(k==="top>agac") return {msg:"Yumağı yukarı attın, dalda takıldı. Kedi bakıyor ama inmiyor 🧶"};
+      if(k==="kopek>agac") return {msg:"Köpek havladı, kedi daha da yukarı tırmandı! 🙀"};
+      return null;
+    }
+  },
+  {
+    title: "İnternet yok, ödev yarın! 📶",
+    story: "Ödevi gece 12'ye kadar göndermen lazım. Modemin ışıkları sönük!",
+    bg: "linear-gradient(180deg,#e9e4ff 0%,#cfc4ff 100%)",
+    hint: "Modem çalışmıyorsa fişi takılı mı? Takılı değilse... priz neden dolu?",
+    win: "Süpürgeyi kaldırıp modemi prize taktın. Işıklar yandı, ödev gitti!",
+    items: [
+      {id:"modem", em:"📡", lb:s=> s.done ? "Modem (ışıklar yandı)" : "Modem (ışıklar sönük)", x:24, y:28, target:true, look:"Tek bir ışığı bile yanmıyor. Fişi sarkıyor."},
+      {id:"priz", em:"🔌", lb:s=> s.bosPriz ? "Priz (boş)" : "Priz (süpürge takılı)", x:76, y:24, target:true, look:s=> s.bosPriz ? "Priz boş." : "Tek priz var ve süpürgenin fişi takılı!"},
+      {id:"supurge", em:"🧹", lb:"Elektrik süpürgesi", x:76, y:58, drag:true, show:s=>!s.bosPriz, look:"Annen temizlik yapmış, fişi prizde kalmış."},
+      {id:"dolap", em:"🚪", lb:"Dolap", x:46, y:58, target:true, look:"Temizlik dolabı. Süpürgenin yeri burası."},
+      {id:"fis", em:"🔋", lb:"Modem fişi", x:20, y:78, drag:true, look:"Modemin adaptörü."},
+      {id:"telefon", em:"📱", lb:"Telefon", x:52, y:84, drag:true, look:"Mobil veri bitmiş: \"Paketiniz sona erdi\" 😩"}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="supurge>dolap"){ s.bosPriz=true; return {type:"progress", msg:"Süpürgeyi fişinden çekip dolaba kaldırdın. Priz boşaldı! 🔌", flash:"priz"}; }
+      if(k==="fis>priz"){ if(s.bosPriz){ s.done=true; return {type:"win", msg:"Modem açıldı, ışıklar yeşil yandı! Ödev gönderildi ✅"}; } return {msg:"Priz dolu! Süpürgenin fişi takılı 🧹"}; }
+      if(k==="telefon>modem") return {msg:"Telefonu modeme yaklaştırdın... bir şey değişmedi 😅"};
+      if(k==="fis>modem") return {msg:"Fiş zaten modeme bağlı. Diğer ucu prize gitmeli!"};
+      if(k==="supurge>priz") return {msg:"Süpürge zaten takılı. Onu kaldırman lazım."};
+      if(k==="supurge>modem") return {msg:"Modemi süpürge ile çalıştıramazsın 😂"};
+      return null;
+    }
+  },
+  {
+    il: "Gaziantep",
+    title: "Baklava tepsisi sıcak! 🥮",
+    story: "Misafirler sofrada, baklava fırından yeni çıktı. Tepsiyi masaya taşıman lazım!",
+    bg: "linear-gradient(180deg,#fff3d1 0%,#ffd98a 100%)",
+    hint: "Fırından çıkan tepsiye çıplak elle dokunulmaz. Mutfakta elleri koruyan bir şey var.",
+    win: "Fırın eldiveniyle tepsiyi taşıdın. Misafirler: \"Antep'in baklavası başka!\"",
+    items: [
+      {id:"tepsi", em:"🥮", lb:s=> s.tutuldu ? "Baklava tepsisi (tutuldu)" : "Baklava tepsisi (çok sıcak!)", x:26, y:34, drag:true, target:true, look:"Fırından yeni çıktı, cızır cızır! Dokunursan yanarsın."},
+      {id:"masa", em:"🍽️", lb:"Sofra", x:76, y:34, target:true, look:"Misafirler çatal bıçak bekliyor."},
+      {id:"eldiven", em:"🧤", lb:"Fırın eldiveni", x:18, y:80, drag:true, show:s=>!s.tutuldu, look:"Kalın fırın eldiveni."},
+      {id:"pecete", em:"🧻", lb:"Peçete", x:46, y:82, drag:true, look:"İnce kâğıt peçete."},
+      {id:"buz", em:"🧊", lb:"Buz", x:74, y:80, drag:true, look:"Dondurucudan buz."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="eldiven>tepsi"){ s.tutuldu=true; return {type:"progress", msg:"Eldivenleri taktın, tepsiyi güvenle tuttun 🧤", flash:"tepsi"}; }
+      if(k==="tepsi>masa"){ if(s.tutuldu) return {type:"win", msg:"Tepsi sofrada! Şerbet parlıyor, misafirler bayıldı 😋"}; return {msg:"Ahh! Elin yandı 🔥 Çıplak elle tutulmaz!"}; }
+      if(k==="pecete>tepsi") return {msg:"Peçete ince, sıcaklık geçiyor! Yandın 🔥"};
+      if(k==="buz>tepsi") return {msg:"Buzu baklavaya koydun... şerbet suya döndü! 😱"};
+      return null;
+    }
+  },
+  {
+    il: "Erzurum",
+    title: "Arabanın camı buz tuttu! ❄️",
+    story: "Sabah -20 derece. İşe gideceksin ama ön cam buz kaplı, hiçbir şey görünmüyor!",
+    bg: "linear-gradient(180deg,#eaf6ff 0%,#c4e4ff 100%)",
+    hint: "Sıcak su döksen cam çatlayabilir! Cüzdanında kazıyıcı gibi sert ve düz bir şey var...",
+    win: "Eski bir kartla buzu kazıdın, cam tertemiz oldu. Hem camı kırmadın hem işe yetiştin!",
+    items: [
+      {id:"cam", em:"🚗", lb:s=> s.done ? "Ön cam (temiz)" : "Ön cam (buz kaplı)", x:50, y:30, target:true, look:"Kalın bir buz tabakası. Hiçbir şey görünmüyor."},
+      {id:"su", em:"♨️", lb:"Kaynar su", x:16, y:62, drag:true, look:"Çaydanlıkta kaynar su."},
+      {id:"cekic", em:"🔨", lb:"Çekiç", x:84, y:62, drag:true, look:"Ağır bir çekiç."},
+      {id:"kart", em:"💳", lb:"Eski kart", x:30, y:84, drag:true, look:"Süresi dolmuş eski bir kart. Sert ve düz kenarlı."},
+      {id:"fon", em:"💨", lb:"Saç kurutma makinesi", x:70, y:84, drag:true, look:"Kablosu 1 metre. Priz evin içinde."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="kart>cam"){ s.done=true; return {type:"win", msg:"Kartın kenarıyla buzu kazıdın... cam pırıl pırıl! ❄️➡️✨"}; }
+      if(k==="su>cam") return {msg:"Dur! Buzlu cama kaynar su dökersen cam çatlayabilir! 😱"};
+      if(k==="cekic>cam") return {msg:"Çekiçle mi?! Camı kıracaksın! 😱"};
+      if(k==="fon>cam") return {msg:"Kablo yetişmedi, priz evin içinde kaldı 🔌"};
+      return null;
+    }
+  }
+];
+
+const FAILS = ["Olmadı... Başka bir şey dene! 🤔","Hmm, bu işe yaramadı.","Yok yok, öyle olmaz 😅","Bir daha düşün!"];
+
+// ---------- KAYIT (bu tarayıcıda) ----------
+const KEY="akilvarmi_v2";
+let save={stars:{}, coins:0, sound:true};
+try{ const r=localStorage.getItem(KEY); if(r) save=Object.assign(save, JSON.parse(r)); }catch(_){}
+function persist(){ try{ localStorage.setItem(KEY, JSON.stringify(save)); }catch(_){} }
+const done=i=> !!save.stars[i];
+const unlocked=i=> i===0 || done(i-1) || done(i);
+const totalStars=()=> Object.values(save.stars).reduce((a,b)=>a+b,0);
+
+// ---------- SES ----------
+let actx=null;
+function beep(notes){
+  if(!save.sound) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    let t=actx.currentTime;
+    notes.forEach(([f,d,type])=>{
+      const o=actx.createOscillator(), g=actx.createGain();
+      o.type=type||"sine"; o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.18,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+      o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+d+.02); t+=d*.85;
+    });
+  }catch(_){}
+}
+const SFX={
+  good:()=>beep([[660,.12],[880,.16]]),
+  bad:()=>beep([[220,.18,"triangle"],[170,.22,"triangle"]]),
+  win:()=>beep([[523,.12],[659,.12],[784,.12],[1047,.3]]),
+  tap:()=>beep([[520,.05]]),
+  coin:()=>beep([[1200,.06],[1600,.1]])
+};
+
+// ---------- DURUM ----------
+let li=0, s={}, wrong=0;
+const $=id=>document.getElementById(id);
+const scene=$("scene"), toast=$("toast");
+const val=(v)=> typeof v==="function" ? v(s) : v;
+
+function show(id){ ["startScreen","mapScreen","gameScreen"].forEach(x=>$(x).classList.toggle("hidden", x!==id)); window.scrollTo(0,0); }
+
+function say(msg, kind){
+  toast.textContent=msg;
+  toast.className="toast"+(kind?" "+kind:"");
+}
+
+// ---------- HARİTA ----------
+function renderMap(){
+  const m=$("map"); m.innerHTML="";
+  const next=LEVELS.findIndex((_,i)=>!done(i));
+  LEVELS.forEach((L,i)=>{
+    const b=document.createElement("button");
+    const isLocked=!unlocked(i);
+    b.className="node"+(isLocked?" locked":"")+(i===next?" next":"");
+    const st=save.stars[i]||0;
+    const icon=isLocked ? "🔒" : (L.title.match(/(\p{Extended_Pictographic}[️‍\p{Extended_Pictographic}]*)\s*$/u)||[,"❓"])[1];
+    const name=L.il ? "📍 "+L.il : L.title.replace(/\s*\p{Extended_Pictographic}[️‍\p{Extended_Pictographic}]*\s*$/u,"").replace(/!$/,"");
+    b.innerHTML=`<div class="ball">${icon}<span class="num">${i+1}</span></div><div class="st">${done(i)?"⭐".repeat(st)+"☆".repeat(3-st):""}</div><div class="nm">${name}</div>`;
+    b.onclick=()=>{ if(isLocked){ SFX.bad(); $("lockOverlay").classList.add("show"); return; } SFX.tap(); startLevel(i); };
+    m.appendChild(b);
+  });
+  const n=Object.keys(save.stars).length;
+  $("mapStars").textContent=totalStars();
+  $("mapCoins").textContent=save.coins;
+  $("pbar").style.width=(n/LEVELS.length*100)+"%";
+  $("mapSub").textContent = n===LEVELS.length ? `Hepsini bitirdin! ${totalStars()}/${LEVELS.length*3} yıldız 🏆` : `${n}/${LEVELS.length} bölüm bitti · sıradaki sarı renkte zıplıyor 👇`;
+  $("soundBtn").textContent = save.sound ? "🔊" : "🔇";
+}
+function openMap(){ renderMap(); show("mapScreen"); }
+
+// ---------- OYUN ----------
+function startLevel(i){ show("gameScreen"); loadLevel(i); }
+
+function loadLevel(i){
+  li=i; s={}; wrong=0;
+  const L=LEVELS[i];
+  $("lvlPill").textContent=`Bölüm ${i+1}/${LEVELS.length}`;
+  $("coins").textContent=save.coins;
+  $("title").textContent=(L.il ? "📍 "+L.il+" · " : "")+L.title;
+  $("story").textContent=L.story;
+  scene.style.background=L.bg;
+  say("Bir eşyayı sürükleyip başka bir şeyin üstüne bırak. Dokunursan eşyaya yakından bakarsın.");
+  render();
+}
+
+function render(){
+  const L=LEVELS[li];
+  scene.innerHTML='<div class="floor"></div>';
+  if(L.waves){ const w=L.waves(s); if(w){ const e=document.createElement("div"); e.className="waves"; e.textContent="📢"; e.style.left=w.x+"%"; e.style.top=w.y+"%"; scene.appendChild(e);} }
+  L.items.forEach(it=>{
+    if(it.show && !it.show(s)) return;
+    const el=document.createElement("div");
+    el.className="item"+(it.drag?" drag":"");
+    el.dataset.id=it.id;
+    el.style.left=it.x+"%"; el.style.top=it.y+"%";
+    el.innerHTML=`<div class="em">${val(it.em)}</div><div class="lb">${val(it.lb)}</div>`;
+    attach(el,it);
+    scene.appendChild(el);
+  });
+}
+
+function flash(id){
+  const el=scene.querySelector(`[data-id="${id}"]`);
+  if(el){ el.classList.add("hot"); setTimeout(()=>el.classList.remove("hot"),700); }
+}
+
+// ---------- SÜRÜKLE-BIRAK ----------
+function attach(el,it){
+  let sx=0, sy=0, moved=false, active=false, over=null;
+  el.addEventListener("pointerdown",e=>{
+    active=true; moved=false; sx=e.clientX; sy=e.clientY;
+    try{ el.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  el.addEventListener("pointermove",e=>{
+    if(!active || !it.drag) return;
+    const dx=e.clientX-sx, dy=e.clientY-sy;
+    if(!moved && Math.hypot(dx,dy)>6){ moved=true; el.classList.add("dragging"); }
+    if(moved){
+      el.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+      const t=targetAt(e.clientX,e.clientY,el);
+      if(over && over!==t) over.classList.remove("over");
+      over=t; if(over) over.classList.add("over");
+    }
+  });
+  const end=e=>{
+    if(!active) return; active=false;
+    if(over){ over.classList.remove("over"); }
+    if(!moved){ SFX.tap(); say("🔍 "+val(it.look)); return; }
+    const t=targetAt(e.clientX,e.clientY,el);
+    el.classList.remove("dragging");
+    el.style.transform="";
+    if(t) tryCombine(it.id, t.dataset.id, el, t);
+    over=null;
+  };
+  el.addEventListener("pointerup",end);
+  el.addEventListener("pointercancel",()=>{ active=false; el.classList.remove("dragging"); el.style.transform=""; if(over) over.classList.remove("over"); });
+}
+
+function targetAt(x,y,self){
+  self.style.visibility="hidden";
+  const hit=document.elementFromPoint(x,y);
+  self.style.visibility="";
+  const t=hit && hit.closest ? hit.closest(".item") : null;
+  return (t && t!==self) ? t : null;
+}
+
+function tryCombine(d,t,dEl,tEl){
+  const r=LEVELS[li].combine(d,t,s);
+  if(!r){ wrong++; SFX.bad(); say(FAILS[Math.floor(Math.random()*FAILS.length)],"bad"); tEl.classList.add("shake"); setTimeout(()=>tEl.classList.remove("shake"),400); return; }
+  if(r.type==="win"){ render(); SFX.good(); say(r.msg,"good"); setTimeout(win,900); return; }
+  if(r.type==="progress"){ render(); SFX.good(); if(r.flash) flash(r.flash); say(r.msg,"good"); return; }
+  wrong++; SFX.bad(); say(r.msg,"bad"); tEl.classList.add("shake"); setTimeout(()=>tEl.classList.remove("shake"),400);
+}
+
+// ---------- BÖLÜM SONU ----------
+function win(){
+  const st = wrong<=1 ? 3 : wrong<=3 ? 2 : 1;
+  const prev = save.stars[li]||0;
+  // Altın: ilk bitirişte yıldız x10, tekrar oynayınca sadece yeni kazanılan yıldızlar için
+  const earn = Math.max(0, st-prev)*10;
+  save.stars[li]=Math.max(prev, st);
+  save.coins+=earn; persist();
+  $("coins").textContent=save.coins;
+  SFX.win(); if(earn) setTimeout(SFX.coin,600);
+  $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+  $("winTitle").textContent = st===3 ? "Dâhisin! 🎉" : st===2 ? "Helal olsun! 👏" : "Sonunda! 😅";
+  $("winText").textContent = LEVELS[li].win + (earn ? `  (+${earn} 🪙)` : (st<3 ? "  (Daha az hatayla 3 yıldız alabilirsin!)" : ""));
+  $("nextBtn").textContent = li<LEVELS.length-1 ? "Sonraki bölüm ▶" : "Bitir 🏁";
+  $("winOverlay").classList.add("show");
+}
+$("nextBtn").onclick=()=>{
+  $("winOverlay").classList.remove("show");
+  if(li<LEVELS.length-1) loadLevel(li+1); else $("endOverlay").classList.add("show");
+};
+$("toMapBtn").onclick=()=>{ $("winOverlay").classList.remove("show"); openMap(); };
+$("againBtn").onclick=()=>{ $("endOverlay").classList.remove("show"); openMap(); };
+$("lockOk").onclick=()=>$("lockOverlay").classList.remove("show");
+
+// ---------- İPUCU (REKLAM ÖRNEĞİ) ----------
+$("hintBtn").onclick=()=>{
+  const ov=$("adOverlay"); let n=3; $("adCount").textContent=n; ov.classList.add("show");
+  const iv=setInterval(()=>{ n--; $("adCount").textContent=n; if(n<=0){ clearInterval(iv); ov.classList.remove("show"); say("💡 "+LEVELS[li].hint); } },1000);
+};
+$("resetBtn").onclick=()=>{ SFX.tap(); loadLevel(li); };
+
+// ---------- GEZİNME ----------
+$("startBtn").onclick=()=>{ SFX.tap(); openMap(); };
+$("backBtn").onclick=()=>{ SFX.tap(); openMap(); };
+$("homeBtn").onclick=()=>{ SFX.tap(); show("startScreen"); };
+$("soundBtn").onclick=()=>{ save.sound=!save.sound; persist(); renderMap(); SFX.tap(); };
+$("wipeBtn").onclick=()=>$("wipeOverlay").classList.add("show");
+$("wipeNo").onclick=()=>$("wipeOverlay").classList.remove("show");
+$("wipeYes").onclick=()=>{ save={stars:{}, coins:0, sound:save.sound}; persist(); $("wipeOverlay").classList.remove("show"); renderMap(); };
+
+// ---------- ANDROID GERİ TUŞU ----------
+try{
+  const CapApp = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+  if(CapApp){
+    CapApp.addListener("backButton", ()=>{
+      const acik=[...document.querySelectorAll(".overlay.show")];
+      if(acik.length){ if(!$("adOverlay").classList.contains("show")) acik.forEach(o=>o.classList.remove("show")); return; }
+      if(!$("gameScreen").classList.contains("hidden")) return openMap();
+      if(!$("mapScreen").classList.contains("hidden")) return show("startScreen");
+      CapApp.exitApp();
+    });
+  }
+}catch(_){}
+</script>
+</body>
+</html>

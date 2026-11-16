@@ -1,0 +1,2 @@
+debug.keystore: yalnızca telefona elle kurulan deneme APK'ları için (gizli değil).
+Play Store'a yüklenecek imzalı AAB için ileride yukleme.p12.enc ve GitHub'da YUKLEME_PAROLA gizli değişkeni eklenecek.
