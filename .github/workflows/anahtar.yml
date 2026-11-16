@@ -1,0 +1,39 @@
+name: Yükleme Anahtarı Oluştur
+
+# Play Store yükleme anahtarını GitHub'ın içinde üretir.
+# Şifre, depo ayarlarındaki YUKLEME_PAROLA gizli değişkeninden okunur; hiçbir yerde görünmez.
+# Bir kez çalıştırılır. Anahtar zaten varsa dokunmaz.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  anahtar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Anahtar üret ve şifrele
+        env:
+          YUKLEME_PAROLA: ${{ secrets.YUKLEME_PAROLA }}
+        run: |
+          if [ -z "$YUKLEME_PAROLA" ]; then echo "::error::Önce depo ayarlarına YUKLEME_PAROLA gizli değişkenini ekle."; exit 1; fi
+          if [ ${#YUKLEME_PAROLA} -lt 8 ]; then echo "::error::Şifre en az 8 karakter olmalı."; exit 1; fi
+          if [ -f imza/yukleme.p12.enc ]; then echo "Anahtar zaten var, dokunulmadı."; exit 0; fi
+          keytool -genkeypair -storetype PKCS12 -keystore "$RUNNER_TEMP/yukleme.p12" -alias dukkantv \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "$YUKLEME_PAROLA" -keypass "$YUKLEME_PAROLA" \
+            -dname "CN=Dukkan TV, O=Dukkan TV, L=Bursa, C=TR"
+          openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in "$RUNNER_TEMP/yukleme.p12" -out imza/yukleme.p12.enc -pass env:YUKLEME_PAROLA
+          rm -f "$RUNNER_TEMP/yukleme.p12"
+          git config user.name "Akıl Var Mı Bot"
+          git config user.email "dukkan.tvstudio@gmail.com"
+          git add imza/yukleme.p12.enc
+          git commit -m "Play Store yükleme anahtarı (şifreli) oluşturuldu"
+          git push
