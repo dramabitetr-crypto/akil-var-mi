@@ -119,20 +119,10 @@
     <div class="scene" id="scene"></div>
     <div class="toast" id="toast">Bir eşyayı sürükleyip başka bir şeyin üstüne bırak. Dokunursan eşyaya yakından bakarsın.</div>
     <div class="row">
-      <button class="b-hint" id="hintBtn">💡 İpucu <small>(reklam izle)</small></button>
+      <button class="b-hint" id="hintBtn">💡 İpucu</button>
       <button class="b-reset" id="resetBtn">↺</button>
     </div>
     <div class="howto">Kesik çizgili eşyalar sürüklenebilir 👆</div>
-  </div>
-</div>
-
-<!-- REKLAM ÖRNEĞİ -->
-<div class="overlay" id="adOverlay">
-  <div class="card ad">
-    <div class="tag">REKLAM ÖRNEĞİ</div>
-    <h3>Ödüllü reklam</h3>
-    <p>Gerçek oyunda burada 5–30 saniyelik bir reklam oynar. Oyuncu ipucu kazanır, sen de reklam geliri.</p>
-    <div class="count" id="adCount">3</div>
   </div>
 </div>
 
@@ -177,7 +167,6 @@
       📅 Her gün yeni "Günün Bulmacası"<br>
       🔥 Seri ödülü: "7 gündür akıllısın!"<br>
       🪙 Altınla ipucu ve yeni bölüm paketleri<br>
-      📺 İpucu, devam ve ödül için reklam<br>
       🎬 Her bölüm aynı zamanda bir TikTok/Shorts videosu
     </div>
     <button class="b-main" id="againBtn">🗺️ Haritaya dön</button>
@@ -1017,11 +1006,8 @@ $("toMapBtn").onclick=()=>{ $("winOverlay").classList.remove("show"); openMap();
 $("againBtn").onclick=()=>{ $("endOverlay").classList.remove("show"); openMap(); };
 $("lockOk").onclick=()=>$("lockOverlay").classList.remove("show");
 
-// ---------- İPUCU (REKLAM ÖRNEĞİ) ----------
-$("hintBtn").onclick=()=>{
-  const ov=$("adOverlay"); let n=3; $("adCount").textContent=n; ov.classList.add("show");
-  const iv=setInterval(()=>{ n--; $("adCount").textContent=n; if(n<=0){ clearInterval(iv); ov.classList.remove("show"); say("💡 "+LEVELS[li].hint); } },1000);
-};
+// ---------- İPUCU ----------
+$("hintBtn").onclick=()=>{ SFX.tap(); say("💡 "+LEVELS[li].hint); };
 $("resetBtn").onclick=()=>{ SFX.tap(); loadLevel(li); };
 
 // ---------- GEZİNME ----------
@@ -1039,7 +1025,7 @@ try{
   if(CapApp){
     CapApp.addListener("backButton", ()=>{
       const acik=[...document.querySelectorAll(".overlay.show")];
-      if(acik.length){ if(!$("adOverlay").classList.contains("show")) acik.forEach(o=>o.classList.remove("show")); return; }
+      if(acik.length){ acik.forEach(o=>o.classList.remove("show")); return; }
       if(!$("gameScreen").classList.contains("hidden")) return openMap();
       if(!$("mapScreen").classList.contains("hidden")) return show("startScreen");
       CapApp.exitApp();
