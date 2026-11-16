@@ -48,12 +48,11 @@ jobs:
           cp -r android-ek/res/. android/app/src/main/res/
           ls android/app/src/main/res/mipmap-xxxhdpi/ android/app/src/main/res/mipmap-anydpi-v26/
 
-      - name: Dik ekran ve titreşim ayarı
+      - name: Dik ekran ayarı
         run: |
           M=android/app/src/main/AndroidManifest.xml
           sed -i 's/android:name=".MainActivity"/android:name=".MainActivity" android:screenOrientation="portrait"/' $M
-          sed -i 's#</manifest>#    <uses-permission android:name="android.permission.VIBRATE" />\n</manifest>#' $M
-          grep -q 'screenOrientation="portrait"' $M && grep -q 'permission.VIBRATE' $M
+          grep -q 'screenOrientation="portrait"' $M
 
       - name: Android 16 (API 36) hedefi
         run: |
