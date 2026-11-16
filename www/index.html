@@ -91,7 +91,7 @@
     <div class="logo"><span>🧠</span>Akıl Var Mı?</div>
     <p>Mahallede, evde, dolmuşta... Her bölüm küçük bir hikâye. Eşyaları sürükle, birleştir, ters köşeyi bul!</p>
     <button class="b-main" id="startBtn">▶ OYNA</button>
-    <p style="font-size:13px;opacity:.8">Deneme sürümü · 16 bölüm</p>
+    <p style="font-size:13px;opacity:.8">Deneme sürümü · 26 bölüm</p>
   </div>
 
   <!-- HARİTA -->
@@ -170,7 +170,7 @@
 <div class="overlay" id="endOverlay">
   <div class="card">
     <h3>Örnek bitti! 🧠🏆</h3>
-    <p>16 bölümün hepsini bitirdin. Tam oyunda olacaklar:</p>
+    <p>Bütün bölümleri bitirdin! Tam oyunda olacaklar:</p>
     <div class="list">
       📚 200+ bölüm: düğün, bayram, okul, kayınvalide, dolmuş...<br>
       📍 81 ilden yöresel bölümler<br>
@@ -595,6 +595,244 @@ const LEVELS = [
       if(k==="su>cam") return {msg:"Dur! Buzlu cama kaynar su dökersen cam çatlayabilir! 😱"};
       if(k==="cekic>cam") return {msg:"Çekiçle mi?! Camı kıracaksın! 😱"};
       if(k==="fon>cam") return {msg:"Kablo yetişmedi, priz evin içinde kaldı 🔌"};
+      return null;
+    }
+  },
+  // ---------- 2. PAKET (17–26) ----------
+  {
+    title: "Kayınvalide geliyor! 🍽️",
+    story: "Kayınvalide 5 dakikaya kapıda. Lavabo kirli bulaşık dolu, mutfak rezalet!",
+    bg: "linear-gradient(180deg,#e6f7ff 0%,#bfe6f5 100%)",
+    hint: "Kirli tabakları makineye koyacaksın ama makine zaten dolu... İçindekiler temiz mi acaba?",
+    win: "Temizleri dolaba, kirlileri makineye. Kayınvalide: \"Maşallah, ne düzenli bir ev!\"",
+    items: [
+      {id:"makine", em:"🫧", lb:s=> s.bos ? "Bulaşık makinesi (boş)" : "Bulaşık makinesi (dolu)", x:24, y:28, target:true, look:s=> s.bos ? "Bomboş, hazır." : "Açtın: içi pırıl pırıl TEMİZ tabak dolu! Kimse boşaltmamış."},
+      {id:"dolap", em:"🗄️", lb:"Tabak dolabı", x:76, y:26, target:true, look:"Tabak rafları bomboş."},
+      {id:"temiz", em:"🍽️", lb:"Temiz tabaklar", x:24, y:56, drag:true, show:s=>!s.bos, look:"Makineden yeni çıkmış, kurumuş tabaklar."},
+      {id:"kirli", em:"🥘", lb:"Kirli bulaşık", x:70, y:72, drag:true, look:"Lavabo tepeleme dolu. Yağlı tencereler, tabaklar..."},
+      {id:"sunger", em:"🧽", lb:"Sünger", x:30, y:84, drag:true, look:"Bir sünger. Elde yıkamak 1 saat sürer!"}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="temiz>dolap"){ s.bos=true; return {type:"progress", msg:"Temiz tabakları dolaba dizdin. Makine boşaldı! 👌", flash:"makine"}; }
+      if(k==="kirli>makine"){ if(s.bos) return {type:"win", msg:"Kirlileri makineye dizdin, düğmeye bastın. Zil çaldı: kayınvalide geldi! 🔔"}; return {msg:"Makine dolu! İçindekiler ne, bir bak 👀"}; }
+      if(k==="kirli>dolap") return {msg:"Kirli tabak dolaba mı?! Kayınvalide bunu görürse... 😱"};
+      if(k==="sunger>kirli") return {msg:"Elde yıkamaya başladın... 5 dakikada bitmez bu! ⏰"};
+      if(k==="temiz>makine") return {msg:"Temizler zaten makinede 😅"};
+      return null;
+    }
+  },
+  {
+    title: "Şarj %1, yol bilinmiyor! 🔋",
+    story: "Otobüsle ilk kez gittiğin bir yere gidiyorsun. Telefonun kapanmak üzere, nerede ineceğini bilmiyorsun!",
+    bg: "linear-gradient(180deg,#fff3c4 0%,#ffe08a 100%)",
+    hint: "Otobüslerde koltukların arkasına bak. Kabloyu oraya, sonra telefonu kabloya...",
+    win: "Koltuğun arkasındaki USB'yi buldun, telefon şarj oldu, durağını kaçırmadın!",
+    items: [
+      {id:"telefon", em:"📱", lb:"Telefon (%1)", x:24, y:30, drag:true, look:"Ekran kırmızı: Şarj %1! 🪫"},
+      {id:"usb", em:"🔌", lb:s=> s.takili ? "Koltuk USB'si (kablo takılı)" : "Koltuk arkası", x:72, y:30, target:true, look:s=> s.takili ? "Kablo takılı, ışığı yanıyor." : "Ön koltuğun arkasında küçük bir USB girişi var!"},
+      {id:"powerbank", em:"🔋", lb:"Powerbank", x:18, y:74, drag:true, look:"Göstergesi: 0 ışık. Dün şarj etmeyi unutmuşsun."},
+      {id:"kablo", em:"〰️", lb:"Şarj kablosu", x:48, y:80, drag:true, show:s=>!s.takili, look:"Çantandan çıkan kablo. Adaptörü yok ama."},
+      {id:"sofor", em:"🧔", lb:"Şoför", x:82, y:72, target:true, look:"\"Abi ben otobüs sürüyorum, şarjcı değilim!\""}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="kablo>usb"){ s.takili=true; return {type:"progress", msg:"Kabloyu koltuğun USB'sine taktın. Işık yandı! ⚡", flash:"usb"}; }
+      if(k==="telefon>usb"){ if(s.takili) return {type:"win", msg:"Telefonu bağladın: şarj oluyor! Haritadan durağını da buldun 🗺️"}; return {msg:"Telefonu direkt mi sokacaksın? 😂 Kablo lazım!"}; }
+      if(k==="powerbank>telefon") return {msg:"Powerbank'in de şarjı bitmiş 😩"};
+      if(k==="kablo>telefon") return {msg:"Kabloyu telefona taktın, öbür ucu boşta sallanıyor 😅"};
+      if(k==="telefon>sofor"||k==="kablo>sofor") return {msg:"Şoför: \"Abi otobüste priz yok, arkaya bak!\""};
+      return null;
+    }
+  },
+  {
+    il: "İzmir",
+    title: "Kordon'da şapka uçtu! 🎩",
+    story: "Kordon'da imbat esti, dedenin şapkası uçtu, iskelenin ucunda denize düşmek üzere!",
+    bg: "linear-gradient(180deg,#bfe9ff 0%,#7fd0f5 55%,#4aa8d8 100%)",
+    hint: "Şapkaya sen yetişemezsin ama balıkçının elindeki şey uzanabilir...",
+    win: "Balıkçının oltasıyla şapkayı kancaladın. Dede: \"Aferin evladım, 40 yıllık şapkam!\"",
+    items: [
+      {id:"sapka", em:"🎩", lb:"Şapka (iskelenin ucunda)", x:80, y:46, target:true, look:"Rüzgârla sallanıyor, her an denize düşebilir!"},
+      {id:"dede", em:"👴", lb:"Dede", x:20, y:28, target:true, look:"\"Şapkam! Rahmetli ninen almıştı onu!\""},
+      {id:"olta", em:"🎣", lb:"Balıkçının oltası", x:50, y:24, drag:true, look:"Balıkçı amca: \"Al evlat, kullan!\" Uzun bir olta."},
+      {id:"kopek", em:"🐕", lb:"Köpek", x:22, y:76, drag:true, look:"Kuyruğunu sallayan bir sokak köpeği."},
+      {id:"simit", em:"🥯", lb:"Gevrek", x:50, y:82, drag:true, look:"İzmir'de simide gevrek denir!"}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="olta>sapka") return {type:"win", msg:"Oltayı uzattın, kanca şapkaya takıldı. Kurtuldu! 🎣🎩"};
+      if(k==="kopek>sapka") return {msg:"Köpek havladı, şapka daha da uca kaydı! 😱"};
+      if(k==="simit>sapka") return {msg:"Gevreği attın, martılar geldi, şapka sallandı! 🕊️"};
+      if(k==="simit>dede") return {msg:"Dede gevreği yedi ama gözü hâlâ şapkada 😄"};
+      if(k==="olta>dede") return {msg:"Dede: \"Balık tutmanın sırası mı evladım!\""};
+      return null;
+    }
+  },
+  {
+    il: "Konya",
+    title: "Etli ekmek yanıyor! 🔥",
+    story: "Taş fırında etli ekmek pişti, kenarları kararmaya başladı. Fırın küreğinin sapı kırık!",
+    bg: "linear-gradient(180deg,#ffe2c4 0%,#ffbf87 100%)",
+    hint: "Kırık kürekle uzanamazsın. Bahçede uzun bir şey var, ikisini birleştir!",
+    win: "Küreğe uzun sapı bağladın, etli ekmeği tam zamanında çıkardın. Bir metrelik Konya etli ekmeği masada!",
+    items: [
+      {id:"firin", em:"🔥", lb:"Taş fırın (çok derin)", x:30, y:30, target:true, look:"Etli ekmek en dipte! Kenarları kararmaya başladı."},
+      {id:"kurek", em:"🪏", lb:s=> s.sapli ? "Uzun saplı kürek" : "Kürek (sapı kırık)", x:22, y:72, drag:true, target:true, look:s=> s.sapli ? "Artık fırının dibine yetişir!" : "Sapı yarıdan kırılmış. Fırının dibine yetişmez."},
+      {id:"sopa", em:"🪵", lb:"Uzun sırık", x:76, y:30, drag:true, show:s=>!s.sopaK, look:"Bahçede duran uzun bir sırık."},
+      {id:"eldiven", em:"🧤", lb:"Fırın eldiveni", x:52, y:80, drag:true, look:"Kalın eldiven. Ama fırın çok derin!"},
+      {id:"ip", em:"🧵", lb:"Sağlam ip", x:80, y:76, drag:true, show:s=>!s.ipK, look:"Kalın bir ip."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="sopa>kurek"||k==="ip>kurek"){ s[d+"K"]=true; if(s.sopaK && s.ipK){ s.sapli=true; return {type:"progress", msg:"Sırığı iple küreğe sımsıkı bağladın. Uzun saplı kürek hazır! 💪", flash:"kurek"}; } return {type:"progress", msg: d==="sopa" ? "Sırığı küreğin yanına koydun... ama tutturacak bir şey lazım!" : "İpi küreğe sardın, şimdi bağlamak için uzun bir şey lazım."}; }
+      if(k==="kurek>firin"){ if(s.sapli) return {type:"win", msg:"Uzun kürekle dibe uzandın, etli ekmek dışarıda! 😋"}; return {msg:"Kırık kürek dibe yetişmiyor, elin yanacak! 🔥"}; }
+      if(k==="eldiven>firin") return {msg:"Eldivenle elini soktun... kolun yetişmiyor, fırın çok derin! 😬"};
+      if(k==="sopa>firin") return {msg:"Sırıkla dürttün, etli ekmek daha da içeri kaydı! 😱"};
+      return null;
+    }
+  },
+  {
+    title: "Asansör arızalı, 8. kat! 🏢",
+    story: "Elinde koca pazar poşetleri var, ev 8. katta ve asansörde \"ARIZALI\" yazıyor!",
+    bg: "linear-gradient(180deg,#e8e8f0 0%,#c9c9da 100%)",
+    hint: "Eski apartmanlarda annelerin balkondan sarkıttığı bir şey vardır... Önce anneni çağır!",
+    win: "Annen balkondan sepeti sarkıttı, poşetleri koydun, yukarı çekti. Merdivene gerek kalmadı!",
+    items: [
+      {id:"anne", em:"👩", lb:s=> s.sepet ? "Annen (sepeti sarkıttı)" : "Annen (8. kat balkonu)", x:74, y:14, target:true, look:"Balkonda çiçek suluyor. Yanında ipli bir hasır sepet!"},
+      {id:"asansor", em:"🛗", lb:"Asansör (ARIZALI)", x:22, y:32, target:true, look:"Kapıda kâğıt: \"ARIZALI. Usta yarın gelecek.\""},
+      {id:"merdiven", em:"🪜", lb:"Merdiven", x:22, y:58, target:true, look:"8 kat... 160 basamak!"},
+      {id:"sepet", em:"🧺", lb:"İpli sepet", x:74, y:58, target:true, show:s=>s.sepet, look:"Annenin sarkıttığı sepet, aşağıda bekliyor."},
+      {id:"poset", em:"🛍️", lb:"Pazar poşetleri", x:46, y:80, drag:true, look:"Patates, soğan, karpuz... Taş gibi ağır!"},
+      {id:"islik", em:"📣", lb:"Seslen", x:80, y:84, drag:true, show:s=>!s.sepet, look:"\"Anneeee!\" diye bağırabilirsin."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="islik>anne"){ s.sepet=true; return {type:"progress", msg:"\"Anneee!\" Annen anladı, sepeti iple aşağı sarkıttı 🧺", flash:"sepet"}; }
+      if(k==="poset>sepet") return {type:"win", msg:"Poşetleri sepete koydun, annen yukarı çekti. Sen de elin boş çıktın 😎"};
+      if(k==="poset>asansor") return {msg:"Düğmeye bastın... hiçbir şey olmadı. ARIZALI 😩"};
+      if(k==="poset>merdiven") return {msg:"Çıkmaya başladın... 3. katta nefesin kesildi 😮‍💨"};
+      if(k==="poset>anne") return {msg:"8. kata poşet mi atacaksın?! 😂"};
+      if(k==="islik>asansor") return {msg:"Asansöre bağırmak işe yaramaz 😅"};
+      return null;
+    }
+  },
+  {
+    title: "Sahura 10 dakika! 🥁",
+    story: "Herkes uyuyakaldı! Sahura 10 dakika var, babanı kimse uyandıramıyor.",
+    bg: "linear-gradient(180deg,#1f2a5a 0%,#3b4a8a 100%)",
+    hint: "Ramazan'da sokakta herkesi uyandıran biri dolaşır. Onu doğru yere götür!",
+    win: "Davulcu tam pencerenin altında çaldı: DÜM DÜM! Bütün ev uyandı, sahura yetiştiniz.",
+    items: [
+      {id:"baba", em:"😴", lb:"Baba (derin uykuda)", x:24, y:30, target:true, look:"Horluyor... Hiçbir şey duymuyor."},
+      {id:"pencere", em:"🪟", lb:"Yatak odası penceresi", x:74, y:26, target:true, look:"Pencere sokağa bakıyor."},
+      {id:"davulcu", em:"🥁", lb:"Davulcu", x:76, y:66, drag:true, look:"Sokakta dolaşıyor, \"Hadi kalk sahura!\" diye mani söylüyor."},
+      {id:"telefon", em:"📱", lb:"Babanın telefonu", x:20, y:74, drag:true, look:"Alarm kurulu ama telefon SESSİZDE 🔕"},
+      {id:"tencere", em:"🍲", lb:"Tencere ve kaşık", x:46, y:84, drag:true, look:"Tıngır mıngır ses çıkarır."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="davulcu>pencere") return {type:"win", msg:"DÜM DÜM DÜM! \"Hadi kalk sahura!\" Baba yataktan fırladı 😄"};
+      if(k==="davulcu>baba") return {msg:"Davulcuyu yatak odasına mı sokacaksın?! 😂 Dışarıdan çalsın."};
+      if(k==="telefon>baba") return {msg:"Alarm çaldı... ama telefon sessizde 🔕"};
+      if(k==="tencere>baba") return {msg:"Tıngır mıngır! Baba döndü, yine uyudu 😴"};
+      if(k==="tencere>pencere") return {msg:"Pencereden tencere çaldın, komşu kızdı 😅"};
+      return null;
+    }
+  },
+  {
+    title: "Piknikte karınca istilası! 🐜",
+    story: "Örtüyü serdin, köfteler hazır... ama karıncalar sıraya girmiş, sofraya doğru geliyor!",
+    bg: "linear-gradient(180deg,#d9f5c6 0%,#a6dd85 100%)",
+    hint: "Karıncalarla savaşma! Onlara daha cazip bir yer göster, uzağa...",
+    win: "Şekeri uzaktaki ağacın dibine koydun, karıncalar oraya yöneldi. Piknik kurtuldu, kimse de ezilmedi!",
+    items: [
+      {id:"ortu", em:"🧺", lb:"Piknik örtüsü", x:30, y:32, target:true, look:"Köfte, ekmek, salata... Her şey hazır."},
+      {id:"karinca", em:"🐜", lb:"Karınca sırası", x:62, y:46, target:true, look:"Yüzlerce karınca tek sıra halinde örtüye yürüyor!"},
+      {id:"agac", em:"🌳", lb:"Uzaktaki ağaç", x:84, y:20, target:true, look:"Biraz uzakta, gölgeli bir ağaç."},
+      {id:"seker", em:"🍬", lb:"Şeker", x:20, y:78, drag:true, look:"Çaya atmak için getirdiğin küp şekerler."},
+      {id:"terlik", em:"🩴", lb:"Terlik", x:50, y:82, drag:true, look:"Bir tek terlik."},
+      {id:"su", em:"💧", lb:"Su şişesi", x:80, y:78, drag:true, look:"Buz gibi su."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="seker>agac") return {type:"win", msg:"Şekerleri ağacın dibine koydun. Karıncalar yön değiştirdi! 🐜➡️🌳"};
+      if(k==="seker>ortu") return {msg:"Örtüye şeker mi koydun?! Karıncalar daha da hızlandı 😱"};
+      if(k==="seker>karinca") return {msg:"Şekeri karıncaların yanına koydun, hepsi oraya üşüştü... ama örtüye çok yakın!"};
+      if(k==="terlik>karinca") return {msg:"Terlik mi?! Hem çok kalabalıklar, hem de günah 🙅"};
+      if(k==="su>karinca") return {msg:"Suyu döktün, örtü ıslandı, karıncalar devam ediyor 😩"};
+      return null;
+    }
+  },
+  {
+    il: "Bursa",
+    title: "İskender'e tereyağı! 🧈",
+    story: "Müşteri İskender bekliyor, usta \"tereyağını dök!\" diyor. Ama tereyağı buz gibi, taş kesilmiş!",
+    bg: "linear-gradient(180deg,#ffe9d6 0%,#ffc9a0 100%)",
+    hint: "Bursa'da İskender'in tereyağı cızırdayarak dökülür. Önce ısıtman lazım!",
+    win: "Tereyağını ocakta erittin, cız cız İskender'in üstüne döktün. Müşteri: \"Bursa'da yenir bu!\"",
+    items: [
+      {id:"iskender", em:"🍖", lb:"İskender tabağı", x:70, y:30, target:true, look:"Döner, pide, domates sosu hazır. Eksik: tereyağı!"},
+      {id:"ocak", em:"🔥", lb:"Ocak", x:22, y:30, target:true, look:"Ocak yanıyor."},
+      {id:"tereyag", em:"🧈", lb:s=> s.eridi ? "Erimiş tereyağı (cızırdıyor)" : "Tereyağı (buz gibi)", x:24, y:74, drag:true, look:s=> s.eridi ? "Cız cız köpürüyor!" : "Dolaptan yeni çıkmış, taş gibi."},
+      {id:"yogurt", em:"🥛", lb:"Yoğurt", x:52, y:82, drag:true, look:"Kremalı yoğurt."},
+      {id:"kasik", em:"🥄", lb:"Kaşık", x:80, y:76, drag:true, look:"Büyük bir servis kaşığı."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="tereyag>ocak"){ if(s.eridi) return {msg:"Zaten eridi, şimdi dök!"}; s.eridi=true; return {type:"progress", msg:"Tereyağı ocakta eridi, cız cız köpürüyor! 🔥🧈", flash:"tereyag"}; }
+      if(k==="tereyag>iskender"){ if(s.eridi) return {type:"win", msg:"CIZZZ! Tereyağı İskender'in üstünde. Müşteri bayıldı 😋"}; return {msg:"Buz gibi tereyağı topak topak kaldı 😅 Önce erit!"}; }
+      if(k==="yogurt>iskender") return {msg:"Yoğurt zaten yanında var. Eksik olan tereyağı!"};
+      if(k==="kasik>tereyag") return {msg:"Kaşıkla kazıdın... taş gibi, kaşık büküldü 😬"};
+      if(k==="yogurt>ocak") return {msg:"Yoğurdu ocağa mı koyuyorsun?! Kesildi 😱"};
+      return null;
+    }
+  },
+  {
+    title: "Su birikintisi tehlikesi! 🌧️",
+    story: "Mülakata gidiyorsun, takım elbiselisin. Yol kenarında koca bir su birikintisi var ve araba hızla geliyor!",
+    bg: "linear-gradient(180deg,#cfd8e3 0%,#9fb1c6 100%)",
+    hint: "Yağmurdan korunmak için kullandığın şey, yandan gelen sudan da korur...",
+    win: "Şemsiyeyi kalkan gibi yana tuttun, sular şemsiyeye çarptı. Takım elbise tertemiz, mülakat başarılı!",
+    items: [
+      {id:"araba", em:"🚙", lb:"Hızla gelen araba", x:20, y:30, target:true, look:"Hiç yavaşlamıyor! Birikintiye 3 saniye!"},
+      {id:"birikinti", em:"💦", lb:"Su birikintisi", x:56, y:46, target:true, look:"Koca, çamurlu bir birikinti."},
+      {id:"semsiye", em:"☂️", lb:"Şemsiye", x:20, y:78, drag:true, look:"Kocaman, sağlam bir şemsiye."},
+      {id:"gazete", em:"📰", lb:"Gazete", x:50, y:82, drag:true, look:"Bugünün gazetesi."},
+      {id:"canta", em:"💼", lb:"Evrak çantası", x:80, y:78, drag:true, look:"İçinde CV'n var. Islanmasın!"}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="semsiye>birikinti") return {type:"win", msg:"Şemsiyeyi yana açtın: ŞLAP! Bütün su şemsiyeye geldi ☂️💦"};
+      if(k==="semsiye>araba") return {msg:"Arabaya şemsiye mi sallıyorsun? Şoför görmedi bile 😅"};
+      if(k==="gazete>birikinti") return {msg:"Gazete suya düştü, eriyip gitti 📰💦"};
+      if(k==="canta>birikinti") return {msg:"Çantayı kalkan yaptın... CV sırılsıklam! 😱"};
+      if(t==="araba") return {msg:"Arabayı durduramazsın, kendini koru!"};
+      return null;
+    }
+  },
+  {
+    il: "Van",
+    title: "Kedi kahvaltıya göz dikti! 🐈",
+    story: "Meşhur Van kahvaltısı hazır, ama Van kedisi gözünü otlu peynire dikmiş, atlamak üzere!",
+    bg: "linear-gradient(180deg,#e9f4ff 0%,#bcdcff 100%)",
+    hint: "Van kedileri diğer kedilere benzemez: suyu çok sever! Onu oyalayacak şey...",
+    win: "Leğene su doldurdun, Van kedisi suda oynamaya daldı. Kahvaltı kurtuldu, kedi de mutlu!",
+    items: [
+      {id:"kahvalti", em:"🧀", lb:"Otlu peynir", x:28, y:30, target:true, look:"Van'ın meşhur otlu peyniri, murtuğa, kavut..."},
+      {id:"kedi", em:"🐈", lb:"Van kedisi", x:74, y:30, target:true, look:"Bir gözü mavi, bir gözü yeşil. Peynire kilitlenmiş!"},
+      {id:"legen", em:"🫗", lb:s=> s.dolu ? "Su dolu leğen" : "Boş leğen", x:20, y:76, drag:true, look:s=> s.dolu ? "Leğen su dolu!" : "Plastik bir leğen."},
+      {id:"musluk", em:"🚰", lb:"Musluk", x:52, y:62, target:true, look:"Musluktan su akıyor."},
+      {id:"yumak", em:"🧶", lb:"Yün yumağı", x:50, y:86, drag:true, look:"Kırmızı yün yumağı."},
+      {id:"supurge", em:"🧹", lb:"Süpürge", x:84, y:78, drag:true, look:"Saplı süpürge."}
+    ],
+    combine(d,t,s){
+      const k=d+">"+t;
+      if(k==="legen>musluk"){ if(s.dolu) return {msg:"Leğen zaten dolu!"}; s.dolu=true; return {type:"progress", msg:"Leğene su doldurdun 💧 Şimdi bu kime lazım olabilir?", flash:"legen"}; }
+      if(k==="legen>kedi"){ if(s.dolu) return {type:"win", msg:"Van kedisi suyu görünce peyniri unuttu, leğende şapır şupur oynuyor! 💦🐈"}; return {msg:"Boş leğeni kediye gösterdin... içine kıvrılıp yattı, ama gözü hâlâ peynirde 😄"}; }
+      if(k==="yumak>kedi") return {msg:"Yumakla 2 saniye oynadı, gözü yine peynirde 🧀"};
+      if(k==="supurge>kedi") return {msg:"Kediye süpürge sallamak yok! 🙀"};
+      if(k==="legen>kahvalti") return {msg:"Kahvaltıyı leğenle mi kapatacaksın? 😂"};
       return null;
     }
   }
