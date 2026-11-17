@@ -53,6 +53,9 @@ jobs:
           M=android/app/src/main/AndroidManifest.xml
           sed -i 's/android:name=".MainActivity"/android:name=".MainActivity" android:screenOrientation="portrait"/' $M
           grep -q 'screenOrientation="portrait"' $M
+          # Dikey ekranı "zorunlu donanım" yapma: yoksa Play bazı cihazları dışlar uyarısı verir
+          sed -i '/<application/i\    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />' $M
+          grep -q 'screen.portrait" android:required="false"' $M
 
       - name: Android 16 (API 36) hedefi
         run: |
