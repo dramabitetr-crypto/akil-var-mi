@@ -84,6 +84,9 @@
   @keyframes bob{50%{transform:translateY(-5px)}}
   .mapfoot{display:flex;gap:8px;margin-top:6px}
   .mapfoot button{flex:1;font-size:14px;padding:9px 10px;background:rgba(255,255,255,.95);color:var(--ink)}
+  .mapsec{grid-column:1/-1;color:#fff;background:rgba(0,0,0,.18);border-radius:14px;padding:8px 12px;font-weight:800;font-size:16px;line-height:1.25;margin-top:4px}
+  .mapsec small{display:block;font-weight:600;font-size:12.5px;opacity:.9}
+  .node .sira{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);background:var(--orange);color:#fff;font-size:10px;font-weight:800;border-radius:6px;padding:1px 5px;border:2px solid #fff;white-space:nowrap}
   .progressbar{height:12px;background:rgba(255,255,255,.25);border-radius:999px;overflow:hidden;margin:6px 4px 12px}
   .progressbar div{height:100%;background:#ffd23f;border-radius:999px;transition:width .4s}
 </style>
@@ -96,7 +99,9 @@
     <div class="logo"><span>🧠</span>Akıl Var Mı?</div>
     <p>Mahallede, evde, dolmuşta... Her bölüm küçük bir hikâye. Eşyaları sürükle, birleştir, ters köşeyi bul!</p>
     <button class="b-main" id="startBtn">▶ OYNA</button>
-    <p style="font-size:13px;opacity:.8">50 bölüm · Kolay ve Zor mod</p>
+    <button class="b-sec" id="mapOpenBtn" style="max-width:330px">🗺️ Bölümler</button>
+    <p id="startInfo" style="font-size:14px;opacity:.95"></p>
+    <p style="font-size:13px;opacity:.8">100 bölüm · 1–25 kolay · 26–100 zor (3 can)</p>
   </div>
 
   <!-- HARİTA -->
@@ -110,7 +115,7 @@
     <div class="maphead"><h2>Bölümler</h2><p id="mapSub">Sıradaki bölüm sarı renkte zıplıyor 👇</p></div>
     <div class="progressbar"><div id="pbar" style="width:0%"></div></div>
     <div class="map" id="map"></div>
-    <div class="mapfoot"><button id="modeBtn">🧠 Mod: Zor</button><button id="wipeBtn">↺ İlerlemeyi sıfırla</button></div>
+    <div class="mapfoot"><button id="wipeBtn">↺ İlerlemeyi sıfırla</button></div>
   </div>
 
   <!-- OYUN -->
@@ -162,13 +167,16 @@
   </div>
 </div>
 
-<!-- MOD SEÇİMİ -->
-<div class="overlay" id="modeOverlay">
+<!-- ZOR BÖLÜMLER BAŞLIYOR -->
+<div class="overlay" id="zorOverlay">
   <div class="card">
-    <h3>Nasıl oynamak istersin?</h3>
-    <button class="modecard" id="modeKolay"><b>👶 Kolay</b>Sınırsız deneme, ipucu bedava. Çocuklar için.</button>
-    <button class="modecard" id="modeZor"><b>🧠 Zor</b>Her bölümde 3 can ❤️❤️❤️. İpucu 20 altın. Yanlış hamlenin bedeli var!</button>
-    <p style="font-size:13px;margin:10px 0 0">Modu haritanın altından istediğin zaman değiştirebilirsin.</p>
+    <h3>🧠 Zor bölümler başlıyor!</h3>
+    <div class="list">
+      ❤️❤️❤️ Her bölümde <b>3 canın</b> var. Her yanlış hamle bir can götürür.<br>
+      💡 İpucu artık <b>20 altın</b>. İpucu alırsan en fazla 2 yıldız.<br>
+      🤔 Eşyaları sürüklemeden önce dokunup incele, sonra düşün!
+    </div>
+    <button class="b-main" id="zorOk">Hazırım! ▶</button>
   </div>
 </div>
 
@@ -195,17 +203,18 @@
 <!-- OYUN SONU -->
 <div class="overlay" id="endOverlay">
   <div class="card">
-    <h3>50 bölümün hepsi bitti! 🧠🏆</h3>
+    <h3>100 bölümün hepsi bitti! 🧠🏆</h3>
     <p id="endText">Tebrikler, gerçekten aklın var!</p>
     <div class="list">
       ⭐ Tüm bölümlerde 3 yıldız alabilir misin?<br>
-      🧠 Kolay modda bitirdiysen bir de Zor modu dene!<br>
+      🏆 Gerçek bir akıl küpüsün!<br>
       📚 Yeni bölümler yakında geliyor...
     </div>
     <button class="b-main" id="againBtn">🗺️ Haritaya dön</button>
   </div>
 </div>
 
+<script src="bolumler2.js"></script>
 <script>
 // ---------- BÖLÜMLER ----------
 const LEVELS = [
@@ -749,8 +758,8 @@ const LEVELS = [
       {id:"baba", em:"😴", lb:"Baba (derin uykuda)", x:24, y:30, target:true, look:"Horluyor... Hiçbir şey duymuyor."},
       {id:"pencere", em:"🪟", lb:"Yatak odası penceresi", x:74, y:26, target:true, look:"Pencere sokağa bakıyor."},
       {id:"davulcu", em:"🥁", lb:"Davulcu", x:76, y:66, drag:true, look:"Sokakta dolaşıyor, \"Hadi kalk sahura!\" diye mani söylüyor."},
-      {id:"telefon", em:"📱", lb:"Babanın telefonu", x:20, y:74, drag:true, look:"Alarm kurulu ama telefon SESSİZDE 🔕"},
-      {id:"tencere", em:"🍲", lb:"Tencere ve kaşık", x:46, y:84, drag:true, look:"Tıngır mıngır ses çıkarır."}
+      {id:"telefon", em:"📱", lb:"Babanın telefonu", x:18, y:66, drag:true, look:"Alarm kurulu ama telefon SESSİZDE 🔕"},
+      {id:"tencere", em:"🍲", lb:"Tencere ve kaşık", x:50, y:86, drag:true, look:"Tıngır mıngır ses çıkarır."}
     ],
     combine(d,t,s){
       const k=d+">"+t;
@@ -1576,7 +1585,7 @@ const DECOYS = {
 };
 function placeDecoys(L, list){
   // Boş yerlere yerleştir: mevcut eşyalardan en uzak noktaları seç
-  const pos = L.items.map(it=>[it.x,it.y]);
+  const pos = L.items.map(it=>[typeof it.x==="function"?it.x({}):it.x, typeof it.y==="function"?it.y({}):it.y]);
   const out=[];
   list.forEach((dc,j)=>{
     let best=null, bs=-1;
@@ -1589,7 +1598,8 @@ function placeDecoys(L, list){
   });
   return out;
 }
-LEVELS.forEach((L,i)=>{ if(DECOYS[i]) L.items = L.items.concat(placeDecoys(L, DECOYS[i])); });
+if(window.LEVELS_EK) LEVELS.push(...window.LEVELS_EK);
+LEVELS.forEach((L,i)=>{ const dc=DECOYS[i]||L.decoys; if(dc) L.items = L.items.concat(placeDecoys(L, dc)); });
 
 const FAILS = ["Olmadı... Başka bir şey dene! 🤔","Hmm, bu işe yaramadı.","Yok yok, öyle olmaz 😅","Bir daha düşün!"];
 
@@ -1628,7 +1638,10 @@ const SFX={
 
 // ---------- DURUM ----------
 let li=0, s={}, wrong=0, can=MAXCAN, hintUsed=false, bitti=false;
-const zor=()=> save.mode==="zor";
+const KOLAY_SON=25; // 1-25 kolay, 26'dan sonrası zor
+const zorMu=i=> i>=KOLAY_SON;
+const zor=()=> zorMu(li);
+const siradaki=()=>{ const n=LEVELS.findIndex((_,i)=>!done(i)); return n<0 ? LEVELS.length-1 : n; };
 const $=id=>document.getElementById(id);
 const scene=$("scene"), toast=$("toast");
 const val=(v)=> typeof v==="function" ? v(s) : v;
@@ -1645,13 +1658,18 @@ function renderMap(){
   const m=$("map"); m.innerHTML="";
   const next=LEVELS.findIndex((_,i)=>!done(i));
   LEVELS.forEach((L,i)=>{
+    if(i===0 || i===KOLAY_SON){
+      const h=document.createElement("div"); h.className="mapsec";
+      h.innerHTML = i===0 ? `👶 Kolay bölümler (1–${KOLAY_SON})<small>Sınırsız deneme, ipucu bedava</small>` : `🧠 Zor bölümler (${KOLAY_SON+1}–${LEVELS.length})<small>Her bölümde 3 can ❤️❤️❤️ · İpucu 20 🪙</small>`;
+      m.appendChild(h);
+    }
     const b=document.createElement("button");
     const isLocked=!unlocked(i);
     b.className="node"+(isLocked?" locked":"")+(i===next?" next":"");
     const st=save.stars[i]||0;
     const icon=isLocked ? "🔒" : (L.title.match(/(\p{Extended_Pictographic}[️‍\p{Extended_Pictographic}]*)\s*$/u)||[,"❓"])[1];
     const name=L.il ? "📍 "+L.il : L.title.replace(/\s*\p{Extended_Pictographic}[️‍\p{Extended_Pictographic}]*\s*$/u,"").replace(/!$/,"");
-    b.innerHTML=`<div class="ball">${icon}<span class="num">${i+1}</span></div><div class="st">${done(i)?"⭐".repeat(st)+"☆".repeat(3-st):""}</div><div class="nm">${name}</div>`;
+    b.innerHTML=`<div class="ball">${icon}<span class="num">${i+1}</span>${i===next?'<span class="sira">SIRADA</span>':""}</div><div class="st">${done(i)?"⭐".repeat(st)+"☆".repeat(3-st):""}</div><div class="nm">${name}</div>`;
     b.onclick=()=>{ if(isLocked){ SFX.bad(); $("lockOverlay").classList.add("show"); return; } SFX.tap(); startLevel(i); };
     m.appendChild(b);
   });
@@ -1661,12 +1679,22 @@ function renderMap(){
   $("pbar").style.width=(n/LEVELS.length*100)+"%";
   $("mapSub").textContent = n===LEVELS.length ? `Hepsini bitirdin! ${totalStars()}/${LEVELS.length*3} yıldız 🏆` : `${n}/${LEVELS.length} bölüm bitti · sıradaki sarı renkte zıplıyor 👇`;
   $("soundBtn").textContent = save.sound ? "🔊" : "🔇";
-  $("modeBtn").textContent = save.mode==="kolay" ? "👶 Mod: Kolay" : "🧠 Mod: Zor";
 }
-function openMap(){ renderMap(); show("mapScreen"); }
+function openMap(){
+  renderMap(); show("mapScreen");
+  const n=document.querySelector(".node.next");
+  if(n) setTimeout(()=>n.scrollIntoView({block:"center"}),30);
+}
+function anaEkran(){
+  const n=siradaki(), bitti=Object.keys(save.stars).length;
+  $("startBtn").textContent = bitti===0 ? "▶ OYNA" : bitti>=LEVELS.length ? "▶ Tekrar oyna" : `▶ Devam et · Bölüm ${n+1}`;
+  $("startInfo").textContent = bitti ? `⭐ ${totalStars()} yıldız · ${bitti}/${LEVELS.length} bölüm bitti · 🪙 ${save.coins}` : "";
+  show("startScreen");
+}
 
 // ---------- OYUN ----------
 function startLevel(i){ show("gameScreen"); loadLevel(i); }
+function zorBilgi(){ if(zor() && !save.zorBilgi){ save.zorBilgi=true; persist(); $("zorOverlay").classList.add("show"); } }
 
 function loadLevel(i){
   li=i; s={}; wrong=0; can=MAXCAN; hintUsed=false; bitti=false;
@@ -1678,8 +1706,9 @@ function loadLevel(i){
   $("title").textContent=(L.il ? "📍 "+L.il+" · " : "")+L.title;
   $("story").textContent=L.story;
   scene.style.background=L.bg;
-  say("Bir eşyayı sürükleyip başka bir şeyin üstüne bırak. Dokunursan eşyaya yakından bakarsın.");
+  say(zor() ? "🧠 Zor bölüm: 3 canın var. Önce eşyalara dokunup incele, sonra sürükle!" : "Bir eşyayı sürükleyip başka bir şeyin üstüne bırak. Dokunursan eşyaya yakından bakarsın.");
   render();
+  zorBilgi();
 }
 
 function render(){
@@ -1691,7 +1720,7 @@ function render(){
     const el=document.createElement("div");
     el.className="item"+(it.drag?" drag":"");
     el.dataset.id=it.id;
-    el.style.left=it.x+"%"; el.style.top=it.y+"%";
+    el.style.left=val(it.x)+"%"; el.style.top=val(it.y)+"%";
     el.innerHTML=`<div class="em">${val(it.em)}</div><div class="lb">${val(it.lb)}</div>`;
     attach(el,it);
     scene.appendChild(el);
@@ -1812,27 +1841,15 @@ $("failMapBtn").onclick=()=>{ $("failOverlay").classList.remove("show"); openMap
 $("resetBtn").onclick=()=>{ SFX.tap(); loadLevel(li); };
 
 // ---------- GEZİNME ----------
-function openMode(){
-  $("modeKolay").classList.toggle("sel", save.mode==="kolay");
-  $("modeZor").classList.toggle("sel", save.mode==="zor");
-  $("modeOverlay").classList.add("show");
-}
-function setMode(m){
-  const ilk = !save.mode;
-  save.mode=m;
-  if(ilk && m==="zor" && save.coins<40) save.coins=40; // başlangıç hediyesi: 2 ipucu
-  persist(); $("modeOverlay").classList.remove("show"); SFX.tap(); openMap();
-}
-$("modeKolay").onclick=()=>setMode("kolay");
-$("modeZor").onclick=()=>setMode("zor");
-$("modeBtn").onclick=()=>{ SFX.tap(); openMode(); };
-$("startBtn").onclick=()=>{ SFX.tap(); if(!save.mode) return openMode(); openMap(); };
+$("zorOk").onclick=()=>{ SFX.tap(); $("zorOverlay").classList.remove("show"); };
+$("startBtn").onclick=()=>{ SFX.tap(); startLevel(siradaki()); };
+$("mapOpenBtn").onclick=()=>{ SFX.tap(); openMap(); };
 $("backBtn").onclick=()=>{ SFX.tap(); openMap(); };
-$("homeBtn").onclick=()=>{ SFX.tap(); show("startScreen"); };
+$("homeBtn").onclick=()=>{ SFX.tap(); anaEkran(); };
 $("soundBtn").onclick=()=>{ save.sound=!save.sound; persist(); renderMap(); SFX.tap(); };
 $("wipeBtn").onclick=()=>$("wipeOverlay").classList.add("show");
 $("wipeNo").onclick=()=>$("wipeOverlay").classList.remove("show");
-$("wipeYes").onclick=()=>{ save={stars:{}, coins:save.mode==="zor"?40:0, sound:save.sound, mode:save.mode}; persist(); $("wipeOverlay").classList.remove("show"); renderMap(); };
+$("wipeYes").onclick=()=>{ save={stars:{}, coins:0, sound:save.sound}; persist(); $("wipeOverlay").classList.remove("show"); renderMap(); };
 
 // ---------- ANDROID GERİ TUŞU ----------
 try{
@@ -1842,11 +1859,12 @@ try{
       const acik=[...document.querySelectorAll(".overlay.show")];
       if(acik.length){ const fail=acik.some(o=>o.id==="failOverlay"); acik.forEach(o=>o.classList.remove("show")); if(fail) openMap(); return; }
       if(!$("gameScreen").classList.contains("hidden")) return openMap();
-      if(!$("mapScreen").classList.contains("hidden")) return show("startScreen");
+      if(!$("mapScreen").classList.contains("hidden")) return anaEkran();
       CapApp.exitApp();
     });
   }
 }catch(_){}
+anaEkran();
 </script>
 </body>
 </html>
